@@ -38,14 +38,25 @@ jobs:
           cp -r frontend/dist/* deploy/frontend/
           cp -r backend/* deploy/backend/
 
+      - name: Remove nested deploy folders on server (leftover from old workflow)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stderr: true
+          script: |
+            rm -rf ${{ secrets.DEPLOY_PATH }}/frontend/deploy
+            rm -rf ${{ secrets.DEPLOY_PATH }}/backend/deploy
+
       - name: Deploy frontend to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/frontend/*"
-          target: ${{ secrets.DEPLOY_PATH }}/frontend
+          source: "deploy/frontend"
+          target: ${{ secrets.DEPLOY_PATH }}
 
       - name: Deploy backend to server
         uses: appleboy/scp-action@v0.1.7
@@ -53,8 +64,8 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/backend/*"
-          target: ${{ secrets.DEPLOY_PATH }}/backend
+          source: "deploy/backend"
+          target: ${{ secrets.DEPLOY_PATH }}
 
       - name: Install deps, migrate, restart on server
         uses: appleboy/ssh-action@v1.0.3
