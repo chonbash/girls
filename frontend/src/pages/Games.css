@@ -1,0 +1,66 @@
+.games-page {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.games-title {
+  color: #c44569;
+  margin-bottom: 0.5rem;
+}
+
+.games-hint {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.games-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-width: 24rem;
+}
+
+.games-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.games-item-title {
+  flex: 1;
+}
+
+.games-item-status {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.games-item-go {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #c44569;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.games-empty {
+  color: #666;
+}
+
+.games-finish {
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  background: #27ae60;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+}

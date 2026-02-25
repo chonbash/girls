@@ -1,0 +1,32 @@
+.certificate-page {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.certificate-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 2rem 3rem;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-width: 24rem;
+}
+
+.certificate-card h1 {
+  color: #c44569;
+  margin-bottom: 1rem;
+}
+
+.certificate-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.certificate-text {
+  color: #666;
+}

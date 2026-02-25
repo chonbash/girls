@@ -1,0 +1,32 @@
+.game-stub {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.game-stub h1 {
+  color: #c44569;
+  margin-bottom: 1rem;
+}
+
+.game-stub-done {
+  display: block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #27ae60;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.game-stub-back {
+  display: block;
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.9rem;
+}

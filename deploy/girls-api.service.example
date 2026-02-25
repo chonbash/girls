@@ -1,0 +1,17 @@
+# Пример systemd-юнита для API. Разместить в /etc/systemd/system/girls-api.service
+# После правок: sudo systemctl daemon-reload && sudo systemctl enable --now girls-api
+
+[Unit]
+Description=8 Marta Girls API
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/girls/backend
+Environment="PATH=/var/www/girls/backend/.venv/bin"
+ExecStart=/var/www/girls/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
