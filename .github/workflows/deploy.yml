@@ -48,7 +48,6 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stderr: true
           script: |
             rm -rf ${{ secrets.DEPLOY_PATH }}/frontend/deploy
             rm -rf ${{ secrets.DEPLOY_PATH }}/backend/deploy
@@ -59,7 +58,6 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stderr: true
           script: mkdir -p ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}
 
       - name: Deploy frontend to server
@@ -86,8 +84,8 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stderr: true
           script: |
+            rm -rf ${{ secrets.DEPLOY_PATH }}/frontend ${{ secrets.DEPLOY_PATH }}/backend
             ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/frontend ${{ secrets.DEPLOY_PATH }}/frontend
             ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/backend ${{ secrets.DEPLOY_PATH }}/backend
 
@@ -97,7 +95,6 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stderr: true
           script: |
             cd ${{ secrets.DEPLOY_PATH }}/backend
             [ -d .venv ] && . .venv/bin/activate || python3 -m venv .venv && . .venv/bin/activate
