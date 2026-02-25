@@ -8,9 +8,9 @@ After=network.target
 [Service]
 Type=simple
 User=www-data
-WorkingDirectory=/var/www/girls/backend
-Environment="PATH=/var/www/girls/backend/.venv/bin"
-ExecStart=/var/www/girls/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+WorkingDirectory=/opt/girls/backend
+Environment="PATH=/opt/girls/backend/.venv/bin"
+ExecStart=/opt/girls/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=always
 
 [Install]

@@ -1,9 +1,9 @@
 # Пример конфига для zhdanov.uno/girls/
 # Скопировать в /etc/nginx/sites-available/ или включить в основной конфиг сервера.
 
-# Статика: после деплоя в /var/www/girls лежат frontend/ и backend/
+# Статика: после деплоя в /opt/girls лежат frontend/ и backend/
 location /girls/ {
-    alias /var/www/girls/frontend/;
+    alias /opt/girls/frontend/;
     try_files $uri $uri/ /girls/index.html;
 }
 
