@@ -86,8 +86,8 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             rm -rf ${{ secrets.DEPLOY_PATH }}/frontend ${{ secrets.DEPLOY_PATH }}/backend
-            ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/frontend ${{ secrets.DEPLOY_PATH }}/frontend
-            ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/backend ${{ secrets.DEPLOY_PATH }}/backend
+            ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/deploy/frontend ${{ secrets.DEPLOY_PATH }}/frontend
+            ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/deploy/backend ${{ secrets.DEPLOY_PATH }}/backend
 
       - name: Install deps, migrate, restart on server
         uses: appleboy/ssh-action@v1.0.3
