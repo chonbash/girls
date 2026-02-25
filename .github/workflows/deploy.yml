@@ -34,18 +34,9 @@ jobs:
 
       - name: Prepare deploy artifact
         run: |
-          mkdir -p artifact/frontend artifact/backend
-          cp -r frontend/dist/* artifact/frontend/
-          cp -r backend/* artifact/backend/
-
-      - name: Remove old deploy folder on server (if present)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stderr: true
-          script: rm -rf ${{ secrets.DEPLOY_PATH }}/deploy
+          mkdir -p deploy/frontend deploy/backend
+          cp -r frontend/dist/* deploy/frontend/
+          cp -r backend/* deploy/backend/
 
       - name: Deploy frontend to server
         uses: appleboy/scp-action@v0.1.7
@@ -53,8 +44,8 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "artifact/frontend"
-          target: ${{ secrets.DEPLOY_PATH }}
+          source: "deploy/frontend/*"
+          target: ${{ secrets.DEPLOY_PATH }}/frontend
 
       - name: Deploy backend to server
         uses: appleboy/scp-action@v0.1.7
@@ -62,8 +53,8 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "artifact/backend"
-          target: ${{ secrets.DEPLOY_PATH }}
+          source: "deploy/backend/*"
+          target: ${{ secrets.DEPLOY_PATH }}/backend
 
       - name: Install deps, migrate, restart on server
         uses: appleboy/ssh-action@v1.0.3
