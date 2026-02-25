@@ -11,14 +11,17 @@ from app.models import Game, Base
 
 
 GAMES = [
-    {"slug": "pro-pro-cards", "title": "Карты гадания ПроПро", "sort_order": 1},
+    {"slug": "tarot-cards", "title": "Карты гадания ПроПро", "sort_order": 1},
     {"slug": "horoscope", "title": "Гороскоп на день", "sort_order": 2},
     {"slug": "compliment-wheel", "title": "Комплимент-рулетка", "sort_order": 3},
 ]
 
 
 async def seed():
+    from sqlalchemy import update
     async with async_session() as session:
+        # Migrate old slug to new one
+        await session.execute(update(Game).where(Game.slug == "pro-pro-cards").values(slug="tarot-cards"))
         for g in GAMES:
             r = await session.execute(select(Game).where(Game.slug == g["slug"]))
             if r.scalar_one_or_none() is None:

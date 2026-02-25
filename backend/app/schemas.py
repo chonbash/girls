@@ -6,6 +6,7 @@ class GirlOut(BaseModel):
     id: int
     name: str
     email: str
+    gift_certificate_url: str | None = None
     is_active: bool
     created_at: datetime
 
@@ -16,6 +17,13 @@ class GirlOut(BaseModel):
 class GirlCreate(BaseModel):
     name: str
     email: EmailStr
+    gift_certificate_url: str | None = None
+
+
+class GirlUpdate(BaseModel):
+    name: str | None = None
+    email: EmailStr | None = None
+    gift_certificate_url: str | None = None
 
 
 class GameOut(BaseModel):
@@ -47,3 +55,54 @@ class TokenOut(BaseModel):
 class CertificateOut(BaseModel):
     url: str
     token: str
+
+
+# Tarot
+class TarotCardOut(BaseModel):
+    uuid: str
+    title: str
+    description: str
+    image_url: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class TarotDrawIn(BaseModel):
+    question: str | None = None
+    count: int = 3
+
+
+class TarotDrawOut(BaseModel):
+    past: TarotCardOut
+    present: TarotCardOut
+    future: TarotCardOut
+
+
+class TarotCardCreate(BaseModel):
+    uuid: str
+    title: str
+    description: str
+    image_url: str | None = None
+    sort_order: int = 0
+
+
+class TarotCardUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    image_url: str | None = None
+    is_active: bool | None = None
+    sort_order: int | None = None
+
+
+class TarotCardAdminOut(BaseModel):
+    id: int
+    uuid: str
+    title: str
+    description: str
+    image_url: str | None = None
+    is_active: bool
+    sort_order: int
+
+    class Config:
+        from_attributes = True

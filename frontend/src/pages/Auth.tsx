@@ -25,6 +25,11 @@ export default function Auth() {
     setStep('code');
     setCode('');
     setError('');
+    setSending(true);
+    requestCode(g.id)
+      .then(() => setError(''))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка отправки'))
+      .finally(() => setSending(false));
   };
 
   const onRequestCode = async () => {

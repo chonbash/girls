@@ -59,6 +59,25 @@
   color: #eee;
 }
 
+.admin-form-url {
+  min-width: 16rem;
+}
+
+.admin-cert-link {
+  color: #3498db;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.admin-cert-link:hover {
+  text-decoration: underline;
+}
+
+.admin-no-cert {
+  color: #555;
+  font-size: 0.9rem;
+}
+
 .admin-form button {
   padding: 0.5rem 1rem;
   border: none;
@@ -87,8 +106,31 @@
   font-size: 0.9rem;
 }
 
-.admin-delete {
+.admin-actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  border: none;
+  border-radius: 4px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.admin-edit-btn:hover {
+  background: #2980b9;
+}
+
+.admin-delete {
   padding: 0.25rem 0.75rem;
   border: none;
   border-radius: 4px;
@@ -96,4 +138,138 @@
   color: white;
   cursor: pointer;
   font-size: 0.85rem;
+}
+
+.admin-delete:hover {
+  background: #a93226;
+}
+
+.admin-item-edit .admin-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.admin-edit-input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #16213e;
+  color: #eee;
+  font-size: 0.9rem;
+}
+
+.admin-edit-input.admin-edit-url {
+  min-width: 14rem;
+}
+
+.admin-save {
+  padding: 0.35rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  background: #27ae60;
+  color: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.admin-save:hover {
+  background: #229954;
+}
+
+.admin-cancel {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.admin-cancel:hover {
+  color: #eee;
+  border-color: #666;
+}
+
+.admin-section-title {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: #ddd;
+}
+
+.admin-form-cards {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.admin-form-cards input,
+.admin-form-cards textarea {
+  max-width: 32rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-form-cards .admin-input-uuid {
+  max-width: 12rem;
+}
+
+.admin-input-desc {
+  min-height: 3rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.admin-list-cards .admin-item-card {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.admin-card-uuid {
+  font-size: 0.85rem;
+  color: #888;
+  min-width: 7rem;
+}
+
+.admin-card-title {
+  min-width: 8rem;
+}
+
+.admin-card-desc {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.admin-card-inactive {
+  font-size: 0.8rem;
+  color: #e74c3c;
+}
+
+.admin-edit-form-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.admin-edit-form-card .admin-edit-desc {
+  min-height: 4rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.admin-edit-form-card .admin-edit-sort {
+  max-width: 5rem;
+}
+
+.admin-edit-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
 }

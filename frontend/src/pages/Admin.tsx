@@ -2,9 +2,23 @@ import { useState } from 'react';
 import {
   adminListGirls,
   adminCreateGirl,
+  adminUpdateGirl,
   adminDeleteGirl,
+  adminListTarotCards,
+  adminCreateTarotCard,
+  adminUpdateTarotCard,
+  adminDeleteTarotCard,
   type Girl,
+  type TarotCardAdmin,
 } from '../api';
+
+function PencilIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    </svg>
+  );
+}
 import './Admin.css';
 
 export default function Admin() {
@@ -15,14 +29,34 @@ export default function Admin() {
   const [loading, setLoading] = useState(false);
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [newGiftCertificateUrl, setNewGiftCertificateUrl] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editGiftCertificateUrl, setEditGiftCertificateUrl] = useState('');
+  const [cards, setCards] = useState<TarotCardAdmin[]>([]);
+  const [newCardUuid, setNewCardUuid] = useState('');
+  const [newCardTitle, setNewCardTitle] = useState('');
+  const [newCardDescription, setNewCardDescription] = useState('');
+  const [newCardImageUrl, setNewCardImageUrl] = useState('');
+  const [editingCardId, setEditingCardId] = useState<number | null>(null);
+  const [editCardTitle, setEditCardTitle] = useState('');
+  const [editCardDescription, setEditCardDescription] = useState('');
+  const [editCardImageUrl, setEditCardImageUrl] = useState('');
+  const [editCardActive, setEditCardActive] = useState(true);
+  const [editCardSortOrder, setEditCardSortOrder] = useState(0);
 
   const loadGirls = async () => {
     if (!password) return;
     setLoading(true);
     setError('');
     try {
-      const list = await adminListGirls(password);
+      const [list, cardList] = await Promise.all([
+        adminListGirls(password),
+        adminListTarotCards(password),
+      ]);
       setGirls(list);
+      setCards(cardList);
       setAuthenticated(true);
     } catch {
       setError('Неверный пароль');
@@ -42,12 +76,49 @@ export default function Admin() {
     if (!password || !newName.trim() || !newEmail.trim()) return;
     setError('');
     try {
-      await adminCreateGirl(password, newName.trim(), newEmail.trim());
+      await adminCreateGirl(
+        password,
+        newName.trim(),
+        newEmail.trim(),
+        newGiftCertificateUrl.trim() || null
+      );
       setNewName('');
       setNewEmail('');
+      setNewGiftCertificateUrl('');
       await loadGirls();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка');
+    }
+  };
+
+  const startEdit = (g: Girl) => {
+    setEditingId(g.id);
+    setEditName(g.name);
+    setEditEmail(g.email);
+    setEditGiftCertificateUrl(g.gift_certificate_url ?? '');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+    setEditEmail('');
+    setEditGiftCertificateUrl('');
+  };
+
+  const onSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password || editingId === null || !editName.trim() || !editEmail.trim()) return;
+    setError('');
+    try {
+      await adminUpdateGirl(password, editingId, {
+        name: editName.trim(),
+        email: editEmail.trim(),
+        gift_certificate_url: editGiftCertificateUrl.trim() || null,
+      });
+      cancelEdit();
+      await loadGirls();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка сохранения');
     }
   };
 
@@ -57,6 +128,78 @@ export default function Admin() {
     try {
       await adminDeleteGirl(password, id);
       await loadGirls();
+    } catch {
+      setError('Ошибка удаления');
+    }
+  };
+
+  const onAddCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password || !newCardUuid.trim() || !newCardTitle.trim() || !newCardDescription.trim()) return;
+    setError('');
+    try {
+      await adminCreateTarotCard(password, {
+        uuid: newCardUuid.trim(),
+        title: newCardTitle.trim(),
+        description: newCardDescription.trim(),
+        image_url: newCardImageUrl.trim() || null,
+      });
+      setNewCardUuid('');
+      setNewCardTitle('');
+      setNewCardDescription('');
+      setNewCardImageUrl('');
+      const list = await adminListTarotCards(password);
+      setCards(list);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка');
+    }
+  };
+
+  const startEditCard = (c: TarotCardAdmin) => {
+    setEditingCardId(c.id);
+    setEditCardTitle(c.title);
+    setEditCardDescription(c.description);
+    setEditCardImageUrl(c.image_url ?? '');
+    setEditCardActive(c.is_active);
+    setEditCardSortOrder(c.sort_order);
+  };
+
+  const cancelEditCard = () => {
+    setEditingCardId(null);
+    setEditCardTitle('');
+    setEditCardDescription('');
+    setEditCardImageUrl('');
+    setEditCardActive(true);
+    setEditCardSortOrder(0);
+  };
+
+  const onSaveCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password || editingCardId == null) return;
+    setError('');
+    try {
+      await adminUpdateTarotCard(password, editingCardId, {
+        title: editCardTitle.trim(),
+        description: editCardDescription.trim(),
+        image_url: editCardImageUrl.trim() || null,
+        is_active: editCardActive,
+        sort_order: editCardSortOrder,
+      });
+      cancelEditCard();
+      const list = await adminListTarotCards(password);
+      setCards(list);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка сохранения');
+    }
+  };
+
+  const onDeleteCard = async (id: number) => {
+    if (!password) return;
+    if (!window.confirm('Удалить карту?')) return;
+    try {
+      await adminDeleteTarotCard(password, id);
+      const list = await adminListTarotCards(password);
+      setCards(list);
     } catch {
       setError('Ошибка удаления');
     }
@@ -91,7 +234,7 @@ export default function Admin() {
       <form onSubmit={onAddGirl} className="admin-form">
         <input
           type="text"
-          placeholder="Имя"
+          placeholder="ФИО"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
         />
@@ -101,18 +244,167 @@ export default function Admin() {
           value={newEmail}
           onChange={(e) => setNewEmail(e.target.value)}
         />
+        <input
+          type="url"
+          placeholder="Ссылка на подарочный сертификат"
+          value={newGiftCertificateUrl}
+          onChange={(e) => setNewGiftCertificateUrl(e.target.value)}
+          className="admin-form-url"
+        />
         <button type="submit">Добавить</button>
       </form>
       <ul className="admin-list">
-        {girls.map((g) => (
-          <li key={g.id} className="admin-item">
-            <span>{g.name}</span>
-            <span className="admin-email">{g.email}</span>
-            <button type="button" onClick={() => onDelete(g.id)} className="admin-delete">
-              Удалить
-            </button>
-          </li>
-        ))}
+        {girls.map((g) =>
+          editingId === g.id ? (
+            <li key={g.id} className="admin-item admin-item-edit">
+              <form onSubmit={onSaveEdit} className="admin-edit-form">
+                <input
+                  type="text"
+                  placeholder="ФИО"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="admin-edit-input"
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="admin-edit-input"
+                />
+                <input
+                  type="url"
+                  placeholder="Ссылка на сертификат"
+                  value={editGiftCertificateUrl}
+                  onChange={(e) => setEditGiftCertificateUrl(e.target.value)}
+                  className="admin-edit-input admin-edit-url"
+                />
+                <button type="submit" className="admin-save">Сохранить</button>
+                <button type="button" onClick={cancelEdit} className="admin-cancel">Отмена</button>
+              </form>
+            </li>
+          ) : (
+            <li key={g.id} className="admin-item">
+              <span>{g.name}</span>
+              <span className="admin-email">{g.email}</span>
+              {g.gift_certificate_url ? (
+                <a
+                  href={g.gift_certificate_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="admin-cert-link"
+                >
+                  Сертификат
+                </a>
+              ) : (
+                <span className="admin-no-cert">—</span>
+              )}
+              <span className="admin-actions">
+                <button type="button" onClick={() => startEdit(g)} className="admin-edit-btn" title="Редактировать">
+                  <PencilIcon />
+                </button>
+                <button type="button" onClick={() => onDelete(g.id)} className="admin-delete">
+                  Удалить
+                </button>
+              </span>
+            </li>
+          )
+        )}
+      </ul>
+
+      <h2 className="admin-section-title">Карты гадания ПроПро</h2>
+      <form onSubmit={onAddCard} className="admin-form admin-form-cards">
+        <input
+          type="text"
+          placeholder="UUID (slug)"
+          value={newCardUuid}
+          onChange={(e) => setNewCardUuid(e.target.value)}
+          className="admin-input-uuid"
+        />
+        <input
+          type="text"
+          placeholder="Название"
+          value={newCardTitle}
+          onChange={(e) => setNewCardTitle(e.target.value)}
+        />
+        <textarea
+          placeholder="Описание"
+          value={newCardDescription}
+          onChange={(e) => setNewCardDescription(e.target.value)}
+          rows={2}
+          className="admin-input-desc"
+        />
+        <input
+          type="url"
+          placeholder="URL картинки"
+          value={newCardImageUrl}
+          onChange={(e) => setNewCardImageUrl(e.target.value)}
+          className="admin-form-url"
+        />
+        <button type="submit">Добавить карту</button>
+      </form>
+      <ul className="admin-list admin-list-cards">
+        {cards.map((c) =>
+          editingCardId === c.id ? (
+            <li key={c.id} className="admin-item admin-item-edit">
+              <form onSubmit={onSaveCard} className="admin-edit-form admin-edit-form-card">
+                <input
+                  type="text"
+                  placeholder="Название"
+                  value={editCardTitle}
+                  onChange={(e) => setEditCardTitle(e.target.value)}
+                  className="admin-edit-input"
+                />
+                <textarea
+                  placeholder="Описание"
+                  value={editCardDescription}
+                  onChange={(e) => setEditCardDescription(e.target.value)}
+                  rows={3}
+                  className="admin-edit-input admin-edit-desc"
+                />
+                <input
+                  type="url"
+                  placeholder="URL картинки"
+                  value={editCardImageUrl}
+                  onChange={(e) => setEditCardImageUrl(e.target.value)}
+                  className="admin-edit-input admin-edit-url"
+                />
+                <label className="admin-edit-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={editCardActive}
+                    onChange={(e) => setEditCardActive(e.target.checked)}
+                  />
+                  Активна
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={editCardSortOrder}
+                  onChange={(e) => setEditCardSortOrder(parseInt(e.target.value, 10) || 0)}
+                  className="admin-edit-input admin-edit-sort"
+                />
+                <button type="submit" className="admin-save">Сохранить</button>
+                <button type="button" onClick={cancelEditCard} className="admin-cancel">Отмена</button>
+              </form>
+            </li>
+          ) : (
+            <li key={c.id} className="admin-item admin-item-card">
+              <span className="admin-card-uuid">{c.uuid}</span>
+              <strong className="admin-card-title">{c.title}</strong>
+              <span className="admin-card-desc">{c.description.slice(0, 80)}{c.description.length > 80 ? '…' : ''}</span>
+              {!c.is_active && <span className="admin-card-inactive">скрыта</span>}
+              <span className="admin-actions">
+                <button type="button" onClick={() => startEditCard(c)} className="admin-edit-btn" title="Редактировать">
+                  <PencilIcon />
+                </button>
+                <button type="button" onClick={() => onDeleteCard(c.id)} className="admin-delete">
+                  Удалить
+                </button>
+              </span>
+            </li>
+          )
+        )}
       </ul>
     </div>
   );

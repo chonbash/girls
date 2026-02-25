@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCallback, useRef, useState } from 'react';
+import landingSvgRaw from '../assets/landing.svg?raw';
 import './Landing.css';
 
 export default function Landing() {
@@ -36,9 +37,19 @@ export default function Landing() {
       onWheel={onWheel}
     >
       <div className="landing-art">
-        <div className="landing-placeholder">
-          <span className="landing-title">8 Марта</span>
-          <p className="landing-subtitle">Свайп вверх — продолжить</p>
+        <div className="landing-hero">
+          <div className="landing-banner-wrap landing-banner-svg-wrap">
+            <div
+              className="landing-custom-image"
+              dangerouslySetInnerHTML={{ __html: landingSvgRaw }}
+              role="img"
+              aria-label=""
+            />
+          </div>
+          <div className="landing-placeholder">
+            <span className="landing-title">8 Марта</span>
+            <p className="landing-subtitle">Свайп вверх — продолжить</p>
+          </div>
         </div>
       </div>
       <button type="button" className="landing-swipe-hint" onClick={goNext} aria-label="Далее">

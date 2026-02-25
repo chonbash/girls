@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import Girl, AccessCode, Game
-from app.schemas import GirlOut, GameOut, RequestCodeIn, VerifyCodeIn, TokenOut, CertificateOut
+from app.models import Girl, AccessCode, Game, TarotCard, TarotReading
+from app.schemas import GirlOut, GameOut, RequestCodeIn, VerifyCodeIn, TokenOut, CertificateOut, TarotCardOut, TarotDrawIn, TarotDrawOut
 from app.auth import create_access_token, require_girl
 from app.email import send_code_email
 from app.config import settings
@@ -67,6 +67,48 @@ async def game_stub(slug: str, db: AsyncSession = Depends(get_db)):
     if not game:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
     return {"slug": game.slug, "title": game.title, "stub": True}
+
+
+@router.get("/tarot-cards", response_model=list[TarotCardOut])
+async def list_tarot_cards(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(TarotCard).where(TarotCard.is_active).order_by(TarotCard.sort_order, TarotCard.id)
+    )
+    return [TarotCardOut.model_validate(c) for c in result.scalars().all()]
+
+
+@router.post("/tarot-cards/draw", response_model=TarotDrawOut)
+async def draw_tarot_cards(data: TarotDrawIn, db: AsyncSession = Depends(get_db)):
+    import random
+    count = min(max(data.count, 1), 10)
+    result = await db.execute(
+        select(TarotCard).where(TarotCard.is_active).order_by(TarotCard.sort_order, TarotCard.id)
+    )
+    cards = list(result.scalars().all())
+    if len(cards) < count:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Not enough cards in deck (need {count}, have {len(cards)})",
+        )
+    drawn = random.sample(cards, count)
+    # Log reading for analytics
+    reading = TarotReading(
+        question_text=(data.question or "").strip() or None,
+        past_card_uuid=drawn[0].uuid,
+        present_card_uuid=drawn[1].uuid if len(drawn) > 1 else drawn[0].uuid,
+        future_card_uuid=drawn[2].uuid if len(drawn) > 2 else drawn[0].uuid,
+    )
+    db.add(reading)
+    await db.flush()
+    # Return exactly 3 for past/present/future
+    past = drawn[0]
+    present = drawn[1] if len(drawn) > 1 else drawn[0]
+    future = drawn[2] if len(drawn) > 2 else drawn[0]
+    return TarotDrawOut(
+        past=TarotCardOut.model_validate(past),
+        present=TarotCardOut.model_validate(present),
+        future=TarotCardOut.model_validate(future),
+    )
 
 
 @router.post("/certificate", response_model=CertificateOut)

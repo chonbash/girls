@@ -9,6 +9,7 @@ export interface Girl {
   id: number;
   name: string;
   email: string;
+  gift_certificate_url: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -72,6 +73,39 @@ export async function getCertificateByToken(token: string): Promise<{ found: boo
   return r.json();
 }
 
+// Tarot (ProPro cards)
+export interface TarotCard {
+  uuid: string;
+  title: string;
+  description: string;
+  image_url: string | null;
+}
+
+export interface TarotDrawResult {
+  past: TarotCard;
+  present: TarotCard;
+  future: TarotCard;
+}
+
+export async function getTarotCards(): Promise<TarotCard[]> {
+  const r = await fetch(`${API}/tarot-cards`);
+  if (!r.ok) throw new Error('Failed to load tarot cards');
+  return r.json();
+}
+
+export async function drawTarotCards(question?: string, count?: number): Promise<TarotDrawResult> {
+  const r = await fetch(`${API}/tarot-cards/draw`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: question || null, count: count ?? 3 }),
+  });
+  if (!r.ok) {
+    const d = await r.json().catch(() => ({}));
+    throw new Error(d.detail || 'Failed to draw cards');
+  }
+  return r.json();
+}
+
 // Admin (password in header)
 export async function adminListGirls(password: string): Promise<Girl[]> {
   const r = await fetch(`${API}/admin/girls`, {
@@ -81,11 +115,38 @@ export async function adminListGirls(password: string): Promise<Girl[]> {
   return r.json();
 }
 
-export async function adminCreateGirl(password: string, name: string, email: string): Promise<Girl> {
+export async function adminCreateGirl(
+  password: string,
+  name: string,
+  email: string,
+  giftCertificateUrl?: string | null
+): Promise<Girl> {
   const r = await fetch(`${API}/admin/girls`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
-    body: JSON.stringify({ name, email }),
+    body: JSON.stringify({
+      name,
+      email,
+      gift_certificate_url: giftCertificateUrl?.trim() || null,
+    }),
+  });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Failed');
+  return r.json();
+}
+
+export async function adminUpdateGirl(
+  password: string,
+  girlId: number,
+  data: { name?: string; email?: string; gift_certificate_url?: string | null }
+): Promise<Girl> {
+  const body: Record<string, unknown> = {};
+  if (data.name !== undefined) body.name = data.name;
+  if (data.email !== undefined) body.email = data.email;
+  if (data.gift_certificate_url !== undefined) body.gift_certificate_url = data.gift_certificate_url?.trim() || null;
+  const r = await fetch(`${API}/admin/girls/${girlId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+    body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Failed');
   return r.json();
@@ -93,6 +154,66 @@ export async function adminCreateGirl(password: string, name: string, email: str
 
 export async function adminDeleteGirl(password: string, girlId: number): Promise<void> {
   const r = await fetch(`${API}/admin/girls/${girlId}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Password': password },
+  });
+  if (!r.ok) throw new Error('Failed');
+}
+
+// Admin tarot cards
+export interface TarotCardAdmin {
+  id: number;
+  uuid: string;
+  title: string;
+  description: string;
+  image_url: string | null;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export async function adminListTarotCards(password: string): Promise<TarotCardAdmin[]> {
+  const r = await fetch(`${API}/admin/tarot-cards`, {
+    headers: { 'X-Admin-Password': password },
+  });
+  if (!r.ok) throw new Error('Unauthorized');
+  return r.json();
+}
+
+export async function adminCreateTarotCard(
+  password: string,
+  data: { uuid: string; title: string; description: string; image_url?: string | null; sort_order?: number }
+): Promise<TarotCardAdmin> {
+  const r = await fetch(`${API}/admin/tarot-cards`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+    body: JSON.stringify({
+      uuid: data.uuid,
+      title: data.title,
+      description: data.description,
+      image_url: data.image_url?.trim() || null,
+      sort_order: data.sort_order ?? 0,
+    }),
+  });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Failed');
+  return r.json();
+}
+
+export async function adminUpdateTarotCard(
+  password: string,
+  cardId: number,
+  data: Partial<{ title: string; description: string; image_url: string | null; is_active: boolean; sort_order: number }>
+): Promise<TarotCardAdmin> {
+  const r = await fetch(`${API}/admin/tarot-cards/${cardId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+    body: JSON.stringify(data),
+  });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Failed');
+  return r.json();
+}
+
+export async function adminDeleteTarotCard(password: string, cardId: number): Promise<void> {
+  const r = await fetch(`${API}/admin/tarot-cards/${cardId}`, {
     method: 'DELETE',
     headers: { 'X-Admin-Password': password },
   });

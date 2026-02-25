@@ -5,7 +5,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.database import Base
-from app.models import Girl, AccessCode, Game, Certificate
+from app.models import Girl, AccessCode, Game, Certificate, TarotCard, TarotReading
 from app.config import settings
 
 config = context.config

@@ -1,0 +1,168 @@
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { drawTarotCards, type TarotCard, type TarotDrawResult } from '../api';
+import './TarotGame.css';
+
+const COMPLETED_KEY = 'girls_completed_games';
+
+function getCompleted(): Set<string> {
+  try {
+    const s = sessionStorage.getItem(COMPLETED_KEY);
+    return new Set(s ? JSON.parse(s) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function setCompleted(slug: string) {
+  const set = getCompleted();
+  set.add(slug);
+  sessionStorage.setItem(COMPLETED_KEY, JSON.stringify([...set]));
+}
+
+type Step = 'question' | 'shuffling' | 'spread';
+
+const SHUFFLE_DURATION_MS = 2000;
+const GAME_SLUG = 'tarot-cards';
+
+export default function TarotGame() {
+  const navigate = useNavigate();
+  const [step, setStep] = useState<Step>('question');
+  const [question, setQuestion] = useState('');
+  const [drawResult, setDrawResult] = useState<TarotDrawResult | null>(null);
+  const [error, setError] = useState('');
+  const [visibleCardIndex, setVisibleCardIndex] = useState(-1);
+  const questionRef = useRef('');
+  const revealTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const onFortune = () => {
+    setError('');
+    questionRef.current = question;
+    setStep('shuffling');
+  };
+
+  useEffect(() => {
+    if (step !== 'shuffling') return;
+    const id = setTimeout(async () => {
+      try {
+        const result = await drawTarotCards(
+          (questionRef.current || '').trim() || undefined,
+          3
+        );
+        setDrawResult(result);
+        setStep('spread');
+        setVisibleCardIndex(0);
+        revealTimeoutsRef.current = [
+          setTimeout(() => setVisibleCardIndex(1), 300),
+          setTimeout(() => setVisibleCardIndex(2), 600),
+        ];
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Ошибка');
+        setStep('question');
+      }
+    }, SHUFFLE_DURATION_MS);
+    return () => {
+      clearTimeout(id);
+      revealTimeoutsRef.current.forEach(clearTimeout);
+      revealTimeoutsRef.current = [];
+    };
+  }, [step]);
+
+  const onDone = () => {
+    setCompleted(GAME_SLUG);
+    navigate('/games');
+  };
+
+  return (
+    <div className="tarot-game">
+      <div className="tarot-game-inner">
+        {step === 'question' && (
+          <div className="tarot-step tarot-question">
+            <h1 className="tarot-title">Карты гадания ПроПро</h1>
+            <p className="tarot-prompt">Спроси колоду о самом сокровенном</p>
+            <textarea
+              className="tarot-input"
+              placeholder="Введите ваш вопрос..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              rows={3}
+            />
+            {error && <p className="tarot-error">{error}</p>}
+            <button type="button" className="tarot-btn tarot-btn-fortune" onClick={onFortune}>
+              Погадать
+            </button>
+          </div>
+        )}
+
+        {step === 'shuffling' && (
+          <div className="tarot-step tarot-shuffling">
+            <p className="tarot-prompt">Колода тасуется...</p>
+            <div className="tarot-deck" aria-hidden>
+              <div className="tarot-deck-card" />
+              <div className="tarot-deck-card" />
+              <div className="tarot-deck-card" />
+            </div>
+          </div>
+        )}
+
+        {step === 'spread' && drawResult && (
+          <div className="tarot-step tarot-spread">
+            <h2 className="tarot-spread-title">Ваш расклад</h2>
+            <div className="tarot-cards">
+              <CardSlot
+                label="Прошлое"
+                card={drawResult.past}
+                visible={visibleCardIndex >= 0}
+              />
+              <CardSlot
+                label="Настоящее"
+                card={drawResult.present}
+                visible={visibleCardIndex >= 1}
+              />
+              <CardSlot
+                label="Будущее"
+                card={drawResult.future}
+                visible={visibleCardIndex >= 2}
+              />
+            </div>
+            <button type="button" className="tarot-btn tarot-btn-done" onClick={onDone}>
+              Завершить
+            </button>
+            <button type="button" className="tarot-back" onClick={() => navigate('/games')}>
+              ← К списку игр
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CardSlot({
+  label,
+  card,
+  visible,
+}: {
+  label: string;
+  card: TarotCard;
+  visible: boolean;
+}) {
+  return (
+    <div className={`tarot-slot ${visible ? 'tarot-slot-visible' : ''}`}>
+      <span className="tarot-slot-label">{label}</span>
+      <div className={`tarot-card-flip ${visible ? 'tarot-card-flipped' : ''}`}>
+        <div className="tarot-card-flip-inner">
+          <div className="tarot-card-back" aria-hidden>
+            <span className="tarot-card-back-pattern" />
+          </div>
+          <div className="tarot-card-face">
+            <div className="tarot-card-face-inner">
+              <h3 className="tarot-card-title">{card.title}</h3>
+              <p className="tarot-card-desc">{card.description}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

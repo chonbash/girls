@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = "noreply@zhdanov.uno"
+    # SMTP.BZ REST API (https://docs.smtp.bz/). Если задан — рассылка через API, иначе через SMTP или stub.
+    smtp_bz_api_key: str = ""
     base_url: str = "https://zhdanov.uno/girls"
     code_expire_hours: int = 24
 
