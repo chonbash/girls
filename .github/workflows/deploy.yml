@@ -38,6 +38,10 @@ jobs:
           cp -r frontend/dist/* deploy/frontend/
           cp -r backend/* deploy/backend/
 
+      - name: Set release ID
+        id: release
+        run: echo "id=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
       - name: Remove nested deploy folders on server (leftover from old workflow)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -49,6 +53,15 @@ jobs:
             rm -rf ${{ secrets.DEPLOY_PATH }}/frontend/deploy
             rm -rf ${{ secrets.DEPLOY_PATH }}/backend/deploy
 
+      - name: Create release directory on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stderr: true
+          script: mkdir -p ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}
+
       - name: Deploy frontend to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -56,7 +69,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: "deploy/frontend"
-          target: ${{ secrets.DEPLOY_PATH }}
+          target: ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}
 
       - name: Deploy backend to server
         uses: appleboy/scp-action@v0.1.7
@@ -65,7 +78,18 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: "deploy/backend"
-          target: ${{ secrets.DEPLOY_PATH }}
+          target: ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}
+
+      - name: Create symlinks to current release
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stderr: true
+          script: |
+            ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/frontend ${{ secrets.DEPLOY_PATH }}/frontend
+            ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/backend ${{ secrets.DEPLOY_PATH }}/backend
 
       - name: Install deps, migrate, restart on server
         uses: appleboy/ssh-action@v1.0.3
