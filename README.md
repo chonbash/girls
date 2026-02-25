@@ -22,7 +22,7 @@ python -m uvicorn app.main:app --reload --port 8000
 Переменные окружения (опционально): создайте `backend/.env`:
 
 - `DATABASE_URL` — по умолчанию `sqlite+aiosqlite:///./girls.db`
-- `ADMIN_PASSWORD_HASH` — bcrypt-хеш пароля админки (получить: `python -c "from passlib.hash import bcrypt; print(bcrypt.hash('твой_пароль'))"`)
+- `ADMIN_PASSWORD_HASH` — bcrypt-хеш пароля админки (пароль не длиннее 72 байт). Получить хеш: `python3 -c "import bcrypt; p='твой_пароль'; print(bcrypt.hashpw(p.encode(), bcrypt.gensalt()).decode())"`
 - `SECRET_KEY` — секрет для JWT
 - SMTP-переменные для отправки кодов на email (если не заданы — код выводится в консоль)
 
