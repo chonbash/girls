@@ -333,7 +333,7 @@ export default function Admin() {
         )}
       </ul>
 
-      <h2 className="admin-section-title">Карты гадания ПроПро</h2>
+      <h2 className="admin-section-title">Гадание на картах ПроПро</h2>
       <form onSubmit={onAddCard} className="admin-form admin-form-cards">
         <input
           type="text"

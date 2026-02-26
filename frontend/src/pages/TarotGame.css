@@ -1,13 +1,20 @@
+/* Единое фиолетовое поле на всё время игры — всегда на весь экран */
 .tarot-game {
+  position: fixed;
+  inset: 0;
   min-height: 100vh;
   padding: 2rem;
-  background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+  background: #1a0a2e;
   color: #f5e6ff;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .tarot-game-inner {
   max-width: 56rem;
   margin: 0 auto;
+  min-height: calc(100vh - 4rem);
+  box-sizing: border-box;
 }
 
 .tarot-title {
@@ -123,47 +130,78 @@
 .tarot-deck {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 1rem;
   margin-top: 2rem;
-  perspective: 400px;
+  perspective: 800px;
+  flex-wrap: wrap;
 }
 
+/* Размер как у карт в раскладе: 20rem × 2:3 */
 .tarot-deck-card {
-  width: 70px;
-  height: 100px;
-  background: linear-gradient(145deg, #3b2a5c 0%, #2d1b4e 100%);
-  border: 2px solid #6d28d9;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  width: 20rem;
+  aspect-ratio: 2 / 3;
+  min-height: 280px;
+  background: #1a0a2e;
+  border: 3px solid #6d28d9;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.tarot-deck-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 11px;
+}
+
+@media (max-width: 1100px) {
+  .tarot-deck-card {
+    width: 14rem;
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tarot-deck-card {
+    width: 10rem;
+    min-height: 150px;
+  }
+}
+
+/* Тасовка: карты мягко сходятся к центру и приподнимаются, потом расходятся обратно */
 @keyframes tarot-shuffle-left {
   0%,
   100% {
-    transform: rotate(-6deg) translateY(0);
+    transform: translate(0, 0) rotate(-6deg);
   }
   50% {
-    transform: rotate(-6deg) translateY(-14px);
+    transform: translate(18px, -22px) rotate(-4deg);
   }
 }
 
 @keyframes tarot-shuffle-mid {
   0%,
   100% {
-    transform: rotate(0deg) translateY(0);
+    transform: translate(0, 0) rotate(0deg);
   }
   50% {
-    transform: rotate(0deg) translateY(-14px);
+    transform: translate(0, -28px) rotate(0deg);
   }
 }
 
 @keyframes tarot-shuffle-right {
   0%,
   100% {
-    transform: rotate(6deg) translateY(0);
+    transform: translate(0, 0) rotate(6deg);
   }
   50% {
-    transform: rotate(6deg) translateY(-14px);
+    transform: translate(-18px, -22px) rotate(4deg);
   }
 }
 
@@ -265,27 +303,21 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Рубашка карты */
+/* Рубашка карты — обложка в стиле таро */
 .tarot-card-back {
-  background: linear-gradient(145deg, #2d1b4e 0%, #1a0a2e 50%, #3b2a5c 100%);
+  background: #1a0a2e;
   border: 3px solid #5b21b6;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.tarot-card-back-pattern {
-  width: 60%;
-  height: 70%;
-  border: 2px solid rgba(139, 92, 246, 0.5);
-  border-radius: 10px;
-  background: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 8px,
-    rgba(139, 92, 246, 0.12) 8px,
-    rgba(139, 92, 246, 0.12) 10px
-  );
+.tarot-card-back-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 11px;
 }
 
 /* Лицевая сторона карты — как настоящая карта */
@@ -302,7 +334,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 1rem;
+  align-items: center;
+  text-align: center;
+  padding: 1rem 0.875rem;
   margin: 8px;
   border: 2px solid rgba(139, 92, 246, 0.35);
   border-radius: 10px;
@@ -311,22 +345,23 @@
 }
 
 .tarot-card-title {
-  font-size: 1.35rem;
-  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  margin: 0 0 0.5rem 0;
   color: #e8d5f2;
   text-align: center;
-  padding-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
   border-bottom: 2px solid rgba(139, 92, 246, 0.5);
   letter-spacing: 0.02em;
   flex-shrink: 0;
 }
 
 .tarot-card-desc {
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.45;
   margin: 0;
   color: rgba(245, 230, 255, 0.92);
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+  text-align: center;
 }
