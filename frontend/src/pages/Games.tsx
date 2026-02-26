@@ -1,17 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getGames, createCertificate, type Game } from '../api';
+import { readCompleted } from '../games/completed';
 import './Games.css';
-
-const COMPLETED_KEY = 'girls_completed_games';
-function readCompleted(): Set<string> {
-  try {
-    const s = sessionStorage.getItem(COMPLETED_KEY);
-    return new Set(s ? JSON.parse(s) : []);
-  } catch {
-    return new Set();
-  }
-}
 
 export default function Games() {
   const navigate = useNavigate();
