@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { drawTarotCards, type TarotCard, type TarotDrawResult } from '../api';
+import tarotCardBack1Url from '../assets/tarot-card-back-1.svg?url';
+import tarotCardBack2Url from '../assets/tarot-card-back-2.svg?url';
+import tarotCardBack3Url from '../assets/tarot-card-back-3.svg?url';
 import { markGameCompleted } from '../games/completed';
 import './TarotGame.css';
 
@@ -36,10 +39,6 @@ export default function TarotGame() {
         setDrawResult(result);
         setStep('spread');
         setVisibleCardIndex(0);
-        revealTimeoutsRef.current = [
-          setTimeout(() => setVisibleCardIndex(1), 300),
-          setTimeout(() => setVisibleCardIndex(2), 600),
-        ];
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Ошибка');
         setStep('question');
@@ -47,10 +46,19 @@ export default function TarotGame() {
     }, SHUFFLE_DURATION_MS);
     return () => {
       clearTimeout(id);
+    };
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== 'spread' || !drawResult) return;
+    const t1 = setTimeout(() => setVisibleCardIndex(1), 300);
+    const t2 = setTimeout(() => setVisibleCardIndex(2), 600);
+    revealTimeoutsRef.current = [t1, t2];
+    return () => {
       revealTimeoutsRef.current.forEach(clearTimeout);
       revealTimeoutsRef.current = [];
     };
-  }, [step]);
+  }, [step, drawResult]);
 
   const onDone = () => {
     markGameCompleted(GAME_SLUG);
@@ -62,7 +70,7 @@ export default function TarotGame() {
       <div className="tarot-game-inner">
         {step === 'question' && (
           <div className="tarot-step tarot-question">
-            <h1 className="tarot-title">Карты гадания ПроПро</h1>
+            <h1 className="tarot-title">Гадание на картах ПроПро</h1>
             <p className="tarot-prompt">Спроси колоду о самом сокровенном</p>
             <textarea
               className="tarot-input"
@@ -82,9 +90,15 @@ export default function TarotGame() {
           <div className="tarot-step tarot-shuffling">
             <p className="tarot-prompt">Колода тасуется...</p>
             <div className="tarot-deck" aria-hidden>
-              <div className="tarot-deck-card" />
-              <div className="tarot-deck-card" />
-              <div className="tarot-deck-card" />
+              <div className="tarot-deck-card">
+                <img src={tarotCardBack1Url} alt="" className="tarot-deck-card-img" />
+              </div>
+              <div className="tarot-deck-card">
+                <img src={tarotCardBack2Url} alt="" className="tarot-deck-card-img" />
+              </div>
+              <div className="tarot-deck-card">
+                <img src={tarotCardBack3Url} alt="" className="tarot-deck-card-img" />
+              </div>
             </div>
           </div>
         )}
@@ -97,16 +111,19 @@ export default function TarotGame() {
                 label="Прошлое"
                 card={drawResult.past}
                 visible={visibleCardIndex >= 0}
+                backIndex={0}
               />
               <CardSlot
                 label="Настоящее"
                 card={drawResult.present}
                 visible={visibleCardIndex >= 1}
+                backIndex={1}
               />
               <CardSlot
                 label="Будущее"
                 card={drawResult.future}
                 visible={visibleCardIndex >= 2}
+                backIndex={2}
               />
             </div>
             <button type="button" className="tarot-btn tarot-btn-done" onClick={onDone}>
@@ -122,14 +139,18 @@ export default function TarotGame() {
   );
 }
 
+const TAROT_BACK_URLS = [tarotCardBack1Url, tarotCardBack2Url, tarotCardBack3Url];
+
 function CardSlot({
   label,
   card,
   visible,
+  backIndex,
 }: {
   label: string;
   card: TarotCard;
   visible: boolean;
+  backIndex: 0 | 1 | 2;
 }) {
   return (
     <div className={`tarot-slot ${visible ? 'tarot-slot-visible' : ''}`}>
@@ -137,7 +158,7 @@ function CardSlot({
       <div className={`tarot-card-flip ${visible ? 'tarot-card-flipped' : ''}`}>
         <div className="tarot-card-flip-inner">
           <div className="tarot-card-back" aria-hidden>
-            <span className="tarot-card-back-pattern" />
+            <img src={TAROT_BACK_URLS[backIndex]} alt="" className="tarot-card-back-img" />
           </div>
           <div className="tarot-card-face">
             <div className="tarot-card-face-inner">
