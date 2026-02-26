@@ -2,8 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
 import Games from './pages/Games';
-import GameStub from './pages/GameStub';
-import TarotGame from './pages/TarotGame';
+import GamePage from './pages/GamePage';
 import Certificate from './pages/Certificate';
 import Admin from './pages/Admin';
 import './App.css';
@@ -15,8 +14,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/games" element={<Games />} />
-        <Route path="/games/tarot-cards" element={<TarotGame />} />
-        <Route path="/games/:slug" element={<GameStub />} />
+        <Route path="/games/:slug" element={<GamePage />} />
         <Route path="/certificate/:token" element={<Certificate />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />

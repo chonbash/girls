@@ -1,29 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { markGameCompleted } from '../games/completed';
 import './GameStub.css';
-
-const COMPLETED_KEY = 'girls_completed_games';
-
-function getCompleted(): Set<string> {
-  try {
-    const s = sessionStorage.getItem(COMPLETED_KEY);
-    return new Set(s ? JSON.parse(s) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function setCompleted(slug: string) {
-  const set = getCompleted();
-  set.add(slug);
-  sessionStorage.setItem(COMPLETED_KEY, JSON.stringify([...set]));
-}
 
 export default function GameStub() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
   const onDone = () => {
-    if (slug) setCompleted(slug);
+    if (slug) markGameCompleted(slug);
     navigate('/games');
   };
 
