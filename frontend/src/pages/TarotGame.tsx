@@ -1,24 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { drawTarotCards, type TarotCard, type TarotDrawResult } from '../api';
+import { markGameCompleted } from '../games/completed';
 import './TarotGame.css';
-
-const COMPLETED_KEY = 'girls_completed_games';
-
-function getCompleted(): Set<string> {
-  try {
-    const s = sessionStorage.getItem(COMPLETED_KEY);
-    return new Set(s ? JSON.parse(s) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function setCompleted(slug: string) {
-  const set = getCompleted();
-  set.add(slug);
-  sessionStorage.setItem(COMPLETED_KEY, JSON.stringify([...set]));
-}
 
 type Step = 'question' | 'shuffling' | 'spread';
 
@@ -69,7 +53,7 @@ export default function TarotGame() {
   }, [step]);
 
   const onDone = () => {
-    setCompleted(GAME_SLUG);
+    markGameCompleted(GAME_SLUG);
     navigate('/games');
   };
 
