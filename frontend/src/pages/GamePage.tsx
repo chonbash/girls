@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { getGameComponent } from '../games/registry';
+import { GAMES_BY_SLUG } from '../games/registry';
 import GameStub from './GameStub';
 
 export default function GamePage() {
@@ -7,9 +7,8 @@ export default function GamePage() {
 
   if (!slug) return <GameStub />;
 
-  const Component = getGameComponent(slug);
+  const Component = GAMES_BY_SLUG[slug];
   if (!Component) return <GameStub />;
 
   return <Component />;
 }
-

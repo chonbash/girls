@@ -15,7 +15,7 @@ export const GAMES_REGISTRY: GameEntry[] = [
   { slug: 'future-letter', Component: FutureLetterGame },
 ];
 
-export function getGameComponent(slug: string): GameComponent | null {
-  const found = GAMES_REGISTRY.find((g) => g.slug === slug);
-  return found ? found.Component : null;
-}
+// Map for O(1) lookup without a function call during render.
+export const GAMES_BY_SLUG: Record<string, GameComponent> = Object.fromEntries(
+  GAMES_REGISTRY.map((entry) => [entry.slug, entry.Component]),
+);
