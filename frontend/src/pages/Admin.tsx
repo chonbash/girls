@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   adminListGirls,
   adminCreateGirl,
@@ -8,6 +8,7 @@ import {
   adminCreateTarotCard,
   adminUpdateTarotCard,
   adminDeleteTarotCard,
+  adminUploadImage,
   type Girl,
   type TarotCardAdmin,
 } from '../api';
@@ -35,7 +36,6 @@ export default function Admin() {
   const [editEmail, setEditEmail] = useState('');
   const [editGiftCertificateUrl, setEditGiftCertificateUrl] = useState('');
   const [cards, setCards] = useState<TarotCardAdmin[]>([]);
-  const [newCardUuid, setNewCardUuid] = useState('');
   const [newCardTitle, setNewCardTitle] = useState('');
   const [newCardDescription, setNewCardDescription] = useState('');
   const [newCardImageUrl, setNewCardImageUrl] = useState('');
@@ -45,6 +45,9 @@ export default function Admin() {
   const [editCardImageUrl, setEditCardImageUrl] = useState('');
   const [editCardActive, setEditCardActive] = useState(true);
   const [editCardSortOrder, setEditCardSortOrder] = useState(0);
+  const [uploadingCardImage, setUploadingCardImage] = useState(false);
+  const addCardFileRef = useRef<HTMLInputElement>(null);
+  const editCardFileRef = useRef<HTMLInputElement>(null);
 
   const loadGirls = async () => {
     if (!password) return;
@@ -135,16 +138,17 @@ export default function Admin() {
 
   const onAddCard = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password || !newCardUuid.trim() || !newCardTitle.trim() || !newCardDescription.trim()) return;
+    if (!password || !newCardTitle.trim() || !newCardDescription.trim()) {
+      setError('Заполните название и описание карты');
+      return;
+    }
     setError('');
     try {
       await adminCreateTarotCard(password, {
-        uuid: newCardUuid.trim(),
         title: newCardTitle.trim(),
         description: newCardDescription.trim(),
         image_url: newCardImageUrl.trim() || null,
       });
-      setNewCardUuid('');
       setNewCardTitle('');
       setNewCardDescription('');
       setNewCardImageUrl('');
@@ -202,6 +206,23 @@ export default function Admin() {
       setCards(list);
     } catch {
       setError('Ошибка удаления');
+    }
+  };
+
+  const onUploadCardImage = async (file: File, forEdit: boolean) => {
+    if (!password) return;
+    setError('');
+    setUploadingCardImage(true);
+    try {
+      const { url } = await adminUploadImage(password, file);
+      if (forEdit) setEditCardImageUrl(url);
+      else setNewCardImageUrl(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка загрузки');
+    } finally {
+      setUploadingCardImage(false);
+      if (addCardFileRef.current) addCardFileRef.current.value = '';
+      if (editCardFileRef.current) editCardFileRef.current.value = '';
     }
   };
 
@@ -316,13 +337,6 @@ export default function Admin() {
       <form onSubmit={onAddCard} className="admin-form admin-form-cards">
         <input
           type="text"
-          placeholder="UUID (slug)"
-          value={newCardUuid}
-          onChange={(e) => setNewCardUuid(e.target.value)}
-          className="admin-input-uuid"
-        />
-        <input
-          type="text"
           placeholder="Название"
           value={newCardTitle}
           onChange={(e) => setNewCardTitle(e.target.value)}
@@ -334,13 +348,29 @@ export default function Admin() {
           rows={2}
           className="admin-input-desc"
         />
-        <input
-          type="url"
-          placeholder="URL картинки"
-          value={newCardImageUrl}
-          onChange={(e) => setNewCardImageUrl(e.target.value)}
-          className="admin-form-url"
-        />
+        <div className="admin-upload-row">
+          <input
+            ref={addCardFileRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+            className="admin-upload-input"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onUploadCardImage(f, false);
+            }}
+          />
+          <button
+            type="button"
+            className="admin-upload-btn"
+            disabled={uploadingCardImage}
+            onClick={() => addCardFileRef.current?.click()}
+          >
+            {uploadingCardImage ? 'Загрузка…' : 'Загрузить картинку'}
+          </button>
+          {newCardImageUrl && (
+            <span className="admin-upload-done">Картинка загружена</span>
+          )}
+        </div>
         <button type="submit">Добавить карту</button>
       </form>
       <ul className="admin-list admin-list-cards">
@@ -362,13 +392,29 @@ export default function Admin() {
                   rows={3}
                   className="admin-edit-input admin-edit-desc"
                 />
-                <input
-                  type="url"
-                  placeholder="URL картинки"
-                  value={editCardImageUrl}
-                  onChange={(e) => setEditCardImageUrl(e.target.value)}
-                  className="admin-edit-input admin-edit-url"
-                />
+                <div className="admin-upload-row">
+                  <input
+                    ref={editCardFileRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+                    className="admin-upload-input"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) onUploadCardImage(f, true);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="admin-upload-btn"
+                    disabled={uploadingCardImage}
+                    onClick={() => editCardFileRef.current?.click()}
+                  >
+                    {uploadingCardImage ? 'Загрузка…' : 'Загрузить картинку'}
+                  </button>
+                  {editCardImageUrl && (
+                    <span className="admin-upload-done">Картинка загружена</span>
+                  )}
+                </div>
                 <label className="admin-edit-checkbox">
                   <input
                     type="checkbox"
@@ -390,7 +436,6 @@ export default function Admin() {
             </li>
           ) : (
             <li key={c.id} className="admin-item admin-item-card">
-              <span className="admin-card-uuid">{c.uuid}</span>
               <strong className="admin-card-title">{c.title}</strong>
               <span className="admin-card-desc">{c.description.slice(0, 80)}{c.description.length > 80 ? '…' : ''}</span>
               {!c.is_active && <span className="admin-card-inactive">скрыта</span>}

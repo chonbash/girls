@@ -107,6 +107,21 @@ export async function drawTarotCards(question?: string, count?: number): Promise
 }
 
 // Admin (password in header)
+export async function adminUploadImage(password: string, file: File): Promise<{ url: string }> {
+  const form = new FormData();
+  form.append('file', file);
+  const r = await fetch(`${API}/admin/upload`, {
+    method: 'POST',
+    headers: { 'X-Admin-Password': password },
+    body: form,
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error((err as { detail?: string })?.detail || 'Ошибка загрузки');
+  }
+  return r.json();
+}
+
 export async function adminListGirls(password: string): Promise<Girl[]> {
   const r = await fetch(`${API}/admin/girls`, {
     headers: { 'X-Admin-Password': password },
@@ -181,21 +196,26 @@ export async function adminListTarotCards(password: string): Promise<TarotCardAd
 
 export async function adminCreateTarotCard(
   password: string,
-  data: { uuid: string; title: string; description: string; image_url?: string | null; sort_order?: number }
+  data: { uuid?: string | null; title: string; description: string; image_url?: string | null; sort_order?: number }
 ): Promise<TarotCardAdmin> {
+  const payload: Record<string, unknown> = {
+    title: data.title,
+    description: data.description,
+    image_url: data.image_url?.trim() || null,
+    sort_order: data.sort_order ?? 0,
+  };
+  if (data.uuid != null && data.uuid.trim() !== '') payload.uuid = data.uuid.trim();
   const r = await fetch(`${API}/admin/tarot-cards`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
-    body: JSON.stringify({
-      uuid: data.uuid,
-      title: data.title,
-      description: data.description,
-      image_url: data.image_url?.trim() || null,
-      sort_order: data.sort_order ?? 0,
-    }),
+    body: JSON.stringify(payload),
   });
-  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Failed');
-  return r.json();
+  const res = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const detail = res && (typeof (res as { detail?: unknown }).detail === 'string' ? (res as { detail: string }).detail : JSON.stringify((res as { detail?: unknown }).detail));
+    throw new Error(detail || 'Failed');
+  }
+  return res as TarotCardAdmin;
 }
 
 export async function adminUpdateTarotCard(

@@ -80,7 +80,7 @@ class TarotDrawOut(BaseModel):
 
 
 class TarotCardCreate(BaseModel):
-    uuid: str
+    uuid: str | None = None
     title: str
     description: str
     image_url: str | None = None

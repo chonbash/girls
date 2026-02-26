@@ -213,25 +213,55 @@
   box-sizing: border-box;
 }
 
-.admin-form-cards .admin-input-uuid {
-  max-width: 12rem;
-}
-
 .admin-input-desc {
   min-height: 3rem;
   resize: vertical;
   font-family: inherit;
 }
 
+.admin-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-upload-input {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.admin-upload-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #3a7bd5;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.admin-upload-btn:hover:not(:disabled) {
+  background: #2d6bc7;
+}
+
+.admin-upload-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.admin-upload-done {
+  font-size: 0.9rem;
+  color: #5cb85c;
+}
+
 .admin-list-cards .admin-item-card {
   flex-wrap: wrap;
   align-items: flex-start;
-}
-
-.admin-card-uuid {
-  font-size: 0.85rem;
-  color: #888;
-  min-width: 7rem;
 }
 
 .admin-card-title {

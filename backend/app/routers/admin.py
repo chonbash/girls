@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+import uuid as uuid_lib
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Header
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,11 +12,39 @@ from app.auth import verify_admin_password
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
+UPLOADS_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "uploads"
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
+
 
 async def require_admin(x_admin_password: str | None = Header(None, alias="X-Admin-Password")):
     if not x_admin_password or not verify_admin_password(x_admin_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
     return True
+
+
+@router.post("/upload")
+async def admin_upload_image(
+    file: UploadFile = File(...),
+    _: bool = Depends(require_admin),
+):
+    """Upload an image for tarot card. Returns public URL path (e.g. /girls/static/uploads/xxx.jpg)."""
+    suffix = Path(file.filename or "").suffix.lower()
+    if suffix not in ALLOWED_IMAGE_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Разрешены только изображения: {', '.join(ALLOWED_IMAGE_EXTENSIONS)}",
+        )
+    content = await file.read()
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Файл слишком большой (макс. 5 МБ)",
+        )
+    name = f"{uuid_lib.uuid4().hex}{suffix}"
+    path = UPLOADS_DIR / name
+    path.write_bytes(content)
+    return {"url": f"/girls/static/uploads/{name}"}
 
 
 @router.get("/girls", response_model=list[GirlOut])
@@ -101,8 +132,9 @@ async def admin_create_tarot_card(
     db: AsyncSession = Depends(get_db),
     _: bool = Depends(require_admin),
 ):
+    card_uuid = (data.uuid or "").strip() or uuid_lib.uuid4().hex
     card = TarotCard(
-        uuid=data.uuid,
+        uuid=card_uuid,
         title=data.title,
         description=data.description,
         image_url=data.image_url,

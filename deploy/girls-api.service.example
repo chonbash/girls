@@ -7,12 +7,14 @@ After=network.target
 
 [Service]
 Type=simple
-User=www-data
+# Пользователь, под которым деплой кладёт файлы (должен иметь доступ к backend и .env)
+User=deploy_girls
 WorkingDirectory=/opt/girls/backend
 Environment="PATH=/opt/girls/backend/.venv/bin"
 # Файл с переменными (KEY=value, без пробелов вокруг =). Можно несколько строк EnvironmentFile=...
 EnvironmentFile=/opt/girls/.env
-ExecStart=/opt/girls/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+# Через python -m uvicorn, чтобы не зависеть от shebang в скрипте uvicorn (избегаем EXEC 203)
+ExecStart=/opt/girls/backend/.venv/bin/python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=always
 
 [Install]
