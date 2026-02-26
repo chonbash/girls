@@ -102,4 +102,5 @@ jobs:
             [ -d .venv ] && . .venv/bin/activate || python3 -m venv .venv && . .venv/bin/activate
             pip install -r requirements.txt -q
             alembic upgrade head
+            python scripts/seed_games.py
             sudo systemctl restart girls-api || true
