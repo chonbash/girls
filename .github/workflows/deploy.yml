@@ -88,6 +88,7 @@ jobs:
             rm -rf ${{ secrets.DEPLOY_PATH }}/frontend ${{ secrets.DEPLOY_PATH }}/backend
             ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/deploy/frontend ${{ secrets.DEPLOY_PATH }}/frontend
             ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/deploy/backend ${{ secrets.DEPLOY_PATH }}/backend
+            [ -f ${{ secrets.DEPLOY_PATH }}/.env ] && ln -sf ${{ secrets.DEPLOY_PATH }}/.env ${{ secrets.DEPLOY_PATH }}/backend/.env || true
 
       - name: Install deps, migrate, restart on server
         uses: appleboy/ssh-action@v1.0.3
@@ -96,7 +97,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/backend
+            cd ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/deploy/backend
             [ -d .venv ] && . .venv/bin/activate || python3 -m venv .venv && . .venv/bin/activate
             pip install -r requirements.txt -q
             alembic upgrade head

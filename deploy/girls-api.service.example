@@ -10,6 +10,8 @@ Type=simple
 User=www-data
 WorkingDirectory=/opt/girls/backend
 Environment="PATH=/opt/girls/backend/.venv/bin"
+# Файл с переменными (KEY=value, без пробелов вокруг =). Можно несколько строк EnvironmentFile=...
+EnvironmentFile=/opt/girls/.env
 ExecStart=/opt/girls/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=always
 
