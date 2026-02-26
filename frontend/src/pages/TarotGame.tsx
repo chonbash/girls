@@ -54,6 +54,7 @@ export default function TarotGame() {
         );
         setDrawResult(result);
         setStep('spread');
+        setVisibleCardIndex(0);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Ошибка');
         setStep('question');
@@ -66,7 +67,6 @@ export default function TarotGame() {
 
   useEffect(() => {
     if (step !== 'spread' || !drawResult) return;
-    setVisibleCardIndex(0);
     const t1 = setTimeout(() => setVisibleCardIndex(1), 300);
     const t2 = setTimeout(() => setVisibleCardIndex(2), 600);
     revealTimeoutsRef.current = [t1, t2];
