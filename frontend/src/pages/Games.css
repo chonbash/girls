@@ -33,6 +33,8 @@
 
 .games-item-title {
   flex: 1;
+  color: #2d3436;
+  font-weight: 500;
 }
 
 .games-item-status {

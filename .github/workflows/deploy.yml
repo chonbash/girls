@@ -89,6 +89,7 @@ jobs:
             ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/deploy/frontend ${{ secrets.DEPLOY_PATH }}/frontend
             ln -sfn ${{ secrets.DEPLOY_PATH }}/releases/${{ steps.release.outputs.id }}/deploy/backend ${{ secrets.DEPLOY_PATH }}/backend
             [ -f ${{ secrets.DEPLOY_PATH }}/.env ] && ln -sf ${{ secrets.DEPLOY_PATH }}/.env ${{ secrets.DEPLOY_PATH }}/backend/.env || true
+            [ -f ${{ secrets.DEPLOY_PATH }}/girls.db ] && ln -sf ${{ secrets.DEPLOY_PATH }}/girls.db ${{ secrets.DEPLOY_PATH }}/backend/girls.db || true
 
       - name: Install deps, migrate, restart on server
         uses: appleboy/ssh-action@v1.0.3
@@ -101,4 +102,5 @@ jobs:
             [ -d .venv ] && . .venv/bin/activate || python3 -m venv .venv && . .venv/bin/activate
             pip install -r requirements.txt -q
             alembic upgrade head
+            python scripts/seed_games.py
             sudo systemctl restart girls-api || true
