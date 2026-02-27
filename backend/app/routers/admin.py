@@ -6,8 +6,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import Girl, Game, TarotCard
-from app.schemas import GirlOut, GirlCreate, GirlUpdate, TarotCardAdminOut, TarotCardCreate, TarotCardUpdate
+from app.models import Girl, Game, TarotCard, HoroscopePrediction
+from app.schemas import (
+    GirlOut,
+    GirlCreate,
+    GirlUpdate,
+    TarotCardAdminOut,
+    TarotCardCreate,
+    TarotCardUpdate,
+    HoroscopePredictionAdminOut,
+    HoroscopePredictionCreate,
+    HoroscopePredictionUpdate,
+)
 from app.auth import verify_admin_password
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -178,4 +188,67 @@ async def admin_delete_tarot_card(
     if not card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Card not found")
     await db.delete(card)
+    return {"ok": True}
+
+
+# Horoscope predictions admin
+@router.get("/horoscope-predictions", response_model=list[HoroscopePredictionAdminOut])
+async def admin_list_horoscope_predictions(
+    db: AsyncSession = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    result = await db.execute(
+        select(HoroscopePrediction).order_by(HoroscopePrediction.sort_order, HoroscopePrediction.id)
+    )
+    return [HoroscopePredictionAdminOut.model_validate(p) for p in result.scalars().all()]
+
+
+@router.post("/horoscope-predictions", response_model=HoroscopePredictionAdminOut)
+async def admin_create_horoscope_prediction(
+    data: HoroscopePredictionCreate,
+    db: AsyncSession = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    pred = HoroscopePrediction(
+        uuid=uuid_lib.uuid4().hex,
+        text=data.text,
+        sort_order=data.sort_order,
+        is_active=data.is_active,
+    )
+    db.add(pred)
+    await db.flush()
+    await db.refresh(pred)
+    return HoroscopePredictionAdminOut.model_validate(pred)
+
+
+@router.patch("/horoscope-predictions/{pred_id}", response_model=HoroscopePredictionAdminOut)
+async def admin_update_horoscope_prediction(
+    pred_id: int,
+    data: HoroscopePredictionUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    result = await db.execute(select(HoroscopePrediction).where(HoroscopePrediction.id == pred_id))
+    pred = result.scalar_one_or_none()
+    if not pred:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prediction not found")
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(pred, key, value)
+    await db.flush()
+    await db.refresh(pred)
+    return HoroscopePredictionAdminOut.model_validate(pred)
+
+
+@router.delete("/horoscope-predictions/{pred_id}")
+async def admin_delete_horoscope_prediction(
+    pred_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    result = await db.execute(select(HoroscopePrediction).where(HoroscopePrediction.id == pred_id))
+    pred = result.scalar_one_or_none()
+    if not pred:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prediction not found")
+    await db.delete(pred)
     return {"ok": True}

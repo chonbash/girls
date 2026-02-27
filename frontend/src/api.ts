@@ -239,3 +239,128 @@ export async function adminDeleteTarotCard(password: string, cardId: number): Pr
   });
   if (!r.ok) throw new Error('Failed');
 }
+
+// Horoscope (8 March mini-game)
+export interface HoroscopeRole {
+  id: string;
+  label: string;
+  label_rod: string;
+}
+
+export interface HoroscopeSign {
+  id: string;
+  label: string;
+  label_rod: string;
+}
+
+export async function getHoroscopeRoles(): Promise<HoroscopeRole[]> {
+  const r = await fetch(`${API}/horoscope/roles`);
+  if (!r.ok) throw new Error('Failed to load roles');
+  return r.json();
+}
+
+export async function getHoroscopeSigns(): Promise<HoroscopeSign[]> {
+  const r = await fetch(`${API}/horoscope/signs`);
+  if (!r.ok) throw new Error('Failed to load signs');
+  return r.json();
+}
+
+export async function getHoroscopePrediction(roleId: string, signId: string): Promise<{ text: string }> {
+  // #region agent log
+  fetch('http://127.0.0.1:7252/ingest/4fab8e05-2547-4b63-9f93-0997be3825ed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      location: 'api.ts:getHoroscopePrediction',
+      message: 'prediction request start',
+      data: { roleId, signId, roleIdType: typeof roleId, signIdType: typeof signId },
+      timestamp: Date.now(),
+      hypothesisId: 'H4',
+    }),
+  }).catch(() => {});
+  // #endregion
+  const r = await fetch(
+    `${API}/horoscope/prediction?role_id=${encodeURIComponent(roleId)}&sign_id=${encodeURIComponent(signId)}`
+  );
+  if (!r.ok) {
+    const text = await r.text();
+    let d: { detail?: string } = {};
+    try {
+      d = JSON.parse(text);
+    } catch {
+      d = {};
+    }
+    const detail = (d as { detail?: string })?.detail || 'Failed to get prediction';
+    // #region agent log
+    fetch('http://127.0.0.1:7252/ingest/4fab8e05-2547-4b63-9f93-0997be3825ed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'api.ts:getHoroscopePrediction',
+        message: 'prediction request failed',
+        data: { status: r.status, statusText: r.statusText, bodyPreview: text.slice(0, 200), parsedDetail: (d as { detail?: string })?.detail },
+        timestamp: Date.now(),
+        hypothesisId: 'H1,H2,H3,H5',
+      }),
+    }).catch(() => {});
+    // #endregion
+    throw new Error(detail);
+  }
+  return r.json();
+}
+
+// Admin horoscope predictions
+export interface HoroscopePredictionAdmin {
+  id: number;
+  uuid: string;
+  text: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export async function adminListHoroscopePredictions(password: string): Promise<HoroscopePredictionAdmin[]> {
+  const r = await fetch(`${API}/admin/horoscope-predictions`, {
+    headers: { 'X-Admin-Password': password },
+  });
+  if (!r.ok) throw new Error('Unauthorized');
+  return r.json();
+}
+
+export async function adminCreateHoroscopePrediction(
+  password: string,
+  data: { text: string; sort_order?: number; is_active?: boolean }
+): Promise<HoroscopePredictionAdmin> {
+  const r = await fetch(`${API}/admin/horoscope-predictions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+    body: JSON.stringify({
+      text: data.text,
+      sort_order: data.sort_order ?? 0,
+      is_active: data.is_active ?? true,
+    }),
+  });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Failed');
+  return r.json();
+}
+
+export async function adminUpdateHoroscopePrediction(
+  password: string,
+  predId: number,
+  data: Partial<{ text: string; sort_order: number; is_active: boolean }>
+): Promise<HoroscopePredictionAdmin> {
+  const r = await fetch(`${API}/admin/horoscope-predictions/${predId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+    body: JSON.stringify(data),
+  });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Failed');
+  return r.json();
+}
+
+export async function adminDeleteHoroscopePrediction(password: string, predId: number): Promise<void> {
+  const r = await fetch(`${API}/admin/horoscope-predictions/${predId}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Password': password },
+  });
+  if (!r.ok) throw new Error('Failed');
+}

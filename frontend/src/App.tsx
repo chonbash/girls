@@ -4,6 +4,7 @@ import Auth from './pages/Auth';
 import Games from './pages/Games';
 import GameStub from './pages/GameStub';
 import TarotGame from './pages/TarotGame';
+import HoroscopeGame from './games/horoscope/HoroscopeGame';
 import Certificate from './pages/Certificate';
 import Admin from './pages/Admin';
 import './App.css';
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/games" element={<Games />} />
         <Route path="/games/tarot-cards" element={<TarotGame />} />
+        <Route path="/games/horoscope" element={<HoroscopeGame />} />
         <Route path="/games/:slug" element={<GameStub />} />
         <Route path="/certificate/:token" element={<Certificate />} />
         <Route path="/admin" element={<Admin />} />

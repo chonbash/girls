@@ -9,8 +9,13 @@ import {
   adminUpdateTarotCard,
   adminDeleteTarotCard,
   adminUploadImage,
+  adminListHoroscopePredictions,
+  adminCreateHoroscopePrediction,
+  adminUpdateHoroscopePrediction,
+  adminDeleteHoroscopePrediction,
   type Girl,
   type TarotCardAdmin,
+  type HoroscopePredictionAdmin,
 } from '../api';
 
 function PencilIcon() {
@@ -48,20 +53,28 @@ export default function Admin() {
   const [uploadingCardImage, setUploadingCardImage] = useState(false);
   const addCardFileRef = useRef<HTMLInputElement>(null);
   const editCardFileRef = useRef<HTMLInputElement>(null);
+  const [predictions, setPredictions] = useState<HoroscopePredictionAdmin[]>([]);
+  const [newPredictionText, setNewPredictionText] = useState('');
+  const [editingPredId, setEditingPredId] = useState<number | null>(null);
+  const [editPredictionText, setEditPredictionText] = useState('');
+  const [editPredictionSortOrder, setEditPredictionSortOrder] = useState(0);
+  const [editPredictionActive, setEditPredictionActive] = useState(true);
 
   const loadGirls = async () => {
     if (!password) return;
     setLoading(true);
     setError('');
-    try {
-      const [list, cardList] = await Promise.all([
-        adminListGirls(password),
-        adminListTarotCards(password),
-      ]);
-      setGirls(list);
-      setCards(cardList);
-      setAuthenticated(true);
-    } catch {
+try {
+        const [list, cardList, predList] = await Promise.all([
+          adminListGirls(password),
+          adminListTarotCards(password),
+          adminListHoroscopePredictions(password),
+        ]);
+        setGirls(list);
+        setCards(cardList);
+        setPredictions(predList);
+        setAuthenticated(true);
+      } catch {
       setError('Неверный пароль');
       setAuthenticated(false);
     } finally {
@@ -223,6 +236,64 @@ export default function Admin() {
       setUploadingCardImage(false);
       if (addCardFileRef.current) addCardFileRef.current.value = '';
       if (editCardFileRef.current) editCardFileRef.current.value = '';
+    }
+  };
+
+  const onAddPrediction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password || !newPredictionText.trim()) return;
+    setError('');
+    try {
+      await adminCreateHoroscopePrediction(password, { text: newPredictionText.trim() });
+      setNewPredictionText('');
+      const list = await adminListHoroscopePredictions(password);
+      setPredictions(list);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка');
+    }
+  };
+
+  const startEditPrediction = (p: HoroscopePredictionAdmin) => {
+    setEditingPredId(p.id);
+    setEditPredictionText(p.text);
+    setEditPredictionSortOrder(p.sort_order);
+    setEditPredictionActive(p.is_active);
+  };
+
+  const cancelEditPrediction = () => {
+    setEditingPredId(null);
+    setEditPredictionText('');
+    setEditPredictionSortOrder(0);
+    setEditPredictionActive(true);
+  };
+
+  const onSavePrediction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password || editingPredId == null) return;
+    setError('');
+    try {
+      await adminUpdateHoroscopePrediction(password, editingPredId, {
+        text: editPredictionText.trim(),
+        sort_order: editPredictionSortOrder,
+        is_active: editPredictionActive,
+      });
+      cancelEditPrediction();
+      const list = await adminListHoroscopePredictions(password);
+      setPredictions(list);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка сохранения');
+    }
+  };
+
+  const onDeletePrediction = async (id: number) => {
+    if (!password) return;
+    if (!window.confirm('Удалить предсказание?')) return;
+    try {
+      await adminDeleteHoroscopePrediction(password, id);
+      const list = await adminListHoroscopePredictions(password);
+      setPredictions(list);
+    } catch {
+      setError('Ошибка удаления');
     }
   };
 
@@ -444,6 +515,67 @@ export default function Admin() {
                   <PencilIcon />
                 </button>
                 <button type="button" onClick={() => onDeleteCard(c.id)} className="admin-delete">
+                  Удалить
+                </button>
+              </span>
+            </li>
+          )
+        )}
+      </ul>
+
+      <h2 className="admin-section-title">Предсказания гороскопа (8 Марта)</h2>
+      <p className="admin-hint">Тексты из общего пула. Роли и знаки заданы в коде.</p>
+      <form onSubmit={onAddPrediction} className="admin-form admin-form-cards">
+        <textarea
+          placeholder="Текст предсказания (например: придёт заказчик, знающий все процессы)"
+          value={newPredictionText}
+          onChange={(e) => setNewPredictionText(e.target.value)}
+          rows={2}
+          className="admin-input-desc"
+        />
+        <button type="submit">Добавить предсказание</button>
+      </form>
+      <ul className="admin-list admin-list-cards">
+        {predictions.map((p) =>
+          editingPredId === p.id ? (
+            <li key={p.id} className="admin-item admin-item-edit">
+              <form onSubmit={onSavePrediction} className="admin-edit-form admin-edit-form-card">
+                <textarea
+                  placeholder="Текст предсказания"
+                  value={editPredictionText}
+                  onChange={(e) => setEditPredictionText(e.target.value)}
+                  rows={3}
+                  className="admin-edit-input admin-edit-desc"
+                />
+                <label className="admin-edit-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={editPredictionActive}
+                    onChange={(e) => setEditPredictionActive(e.target.checked)}
+                  />
+                  Активно
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={editPredictionSortOrder}
+                  onChange={(e) => setEditPredictionSortOrder(parseInt(e.target.value, 10) || 0)}
+                  className="admin-edit-input admin-edit-sort"
+                />
+                <button type="submit" className="admin-save">Сохранить</button>
+                <button type="button" onClick={cancelEditPrediction} className="admin-cancel">Отмена</button>
+              </form>
+            </li>
+          ) : (
+            <li key={p.id} className="admin-item admin-item-card">
+              <strong className="admin-card-title">Предсказание</strong>
+              <span className="admin-card-desc">{p.text.slice(0, 120)}{p.text.length > 120 ? '…' : ''}</span>
+              {!p.is_active && <span className="admin-card-inactive">скрыто</span>}
+              <span className="admin-actions">
+                <button type="button" onClick={() => startEditPrediction(p)} className="admin-edit-btn" title="Редактировать">
+                  <PencilIcon />
+                </button>
+                <button type="button" onClick={() => onDeletePrediction(p.id)} className="admin-delete">
                   Удалить
                 </button>
               </span>
