@@ -68,6 +68,18 @@
 - `npm run lint`
 - `npm run dev`
 
+## Локальная проверка перед коммитом (pre-commit)
+
+В корне репозитория настроен **Husky**: при каждом `git commit` автоматически запускаются те же проверки, что и в CI:
+
+- **Frontend:** `npm run lint`
+- **Backend:** проверка импортов (`python -c "from app.main import app"`) и валидация миграций (`alembic upgrade head`)
+
+Если любая проверка падает, коммит отменяется.
+
+- Один раз выполнить в корне: `npm install` (установит husky и активирует хуки).
+- Перед коммитом можно вручную: `cd frontend && npm run lint`, затем в backend — проверка импортов и `alembic upgrade head`.
+
 ## Важные детали
 
 - Фронт работает под `/girls/` (см. `frontend/vite.config.ts`, `BrowserRouter basename="/girls"`).
