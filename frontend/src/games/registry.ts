@@ -1,3 +1,5 @@
+export const HOROSCOPE_SLUG = 'horoscope';
+export const CUSTOM_GAME_SLUGS: string[] = [HOROSCOPE_SLUG];
 import type { ComponentType } from 'react';
 import TarotGame from '../pages/TarotGame';
 import FutureLetterGame from './future-letter/FutureLetterGame';
@@ -22,5 +24,3 @@ export const GAMES_REGISTRY: GameEntry[] = [
 export const GAMES_BY_SLUG: Record<string, GameComponent> = Object.fromEntries(
   GAMES_REGISTRY.map((entry) => [entry.slug, entry.Component]),
 );
-
-

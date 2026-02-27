@@ -17,7 +17,10 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/games" element={<Games />} />
+<<<<<<< HEAD
         <Route path="/games/:slug" element={<GamePage />} />
+=======
+>>>>>>> 008dd1423749c0342e22c5d6d336a0f023c956d4
         <Route path="/games/tarot-cards" element={<TarotGame />} />
         <Route path="/games/horoscope" element={<HoroscopeGame />} />
         <Route path="/games/:slug" element={<GameStub />} />
