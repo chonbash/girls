@@ -11,9 +11,10 @@ from app.models import Game, Base
 
 
 GAMES = [
-    {"slug": "tarot-cards", "title": "Карты гадания ПроПро", "sort_order": 1},
+    {"slug": "tarot-cards", "title": "Гадание на картах ПроПро", "sort_order": 1},
     {"slug": "horoscope", "title": "Гороскоп на день", "sort_order": 2},
     {"slug": "compliment-wheel", "title": "Комплимент-рулетка", "sort_order": 3},
+    {"slug": "future-letter", "title": "Письмо из будущего", "sort_order": 4},
 ]
 
 

@@ -5,6 +5,7 @@ import Games from './pages/Games';
 import GameStub from './pages/GameStub';
 import TarotGame from './pages/TarotGame';
 import HoroscopeGame from './games/horoscope/HoroscopeGame';
+import GamePage from './pages/GamePage';
 import Certificate from './pages/Certificate';
 import Admin from './pages/Admin';
 import './App.css';
