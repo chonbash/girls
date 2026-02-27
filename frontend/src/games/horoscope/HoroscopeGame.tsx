@@ -65,7 +65,7 @@ export default function HoroscopeGame() {
   const [roles, setRoles] = useState<HoroscopeRole[]>([]);
   const [signs, setSigns] = useState<HoroscopeSign[]>([]);
   const [selectedRole, setSelectedRole] = useState<HoroscopeRole | null>(null);
-  const [selectedSign, setSelectedSign] = useState<HoroscopeSign | null>(null);
+  const [, setSelectedSign] = useState<HoroscopeSign | null>(null);
   const [prediction, setPrediction] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
