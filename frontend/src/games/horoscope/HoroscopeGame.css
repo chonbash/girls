@@ -1,0 +1,134 @@
+.horoscope-game {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 50%, #fab1a0 100%);
+  color: #2d3436;
+}
+
+.horoscope-game-inner {
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.horoscope-title {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  color: #c44569;
+}
+
+.horoscope-prompt {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #636e72;
+}
+
+.horoscope-step {
+  animation: horoscope-fadeIn 0.3s ease-out;
+}
+
+@keyframes horoscope-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.horoscope-choices {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.horoscope-choices-signs {
+  gap: 0.5rem;
+}
+
+.horoscope-choice-btn {
+  padding: 0.6rem 1rem;
+  border: 2px solid rgba(196, 69, 105, 0.4);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #2d3436;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.horoscope-choice-btn:hover {
+  background: rgba(196, 69, 105, 0.15);
+  border-color: #c44569;
+}
+
+.horoscope-prediction-box {
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  border: 2px solid rgba(196, 69, 105, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.horoscope-prediction-text {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  margin: 0;
+  color: #2d3436;
+}
+
+.horoscope-easter-egg {
+  font-style: italic;
+  color: #c44569;
+}
+
+.horoscope-loading {
+  color: #636e72;
+  font-style: italic;
+}
+
+.horoscope-error {
+  color: #d63031;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.horoscope-btn-done {
+  display: inline-block;
+  padding: 0.75rem 1.75rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #c44569;
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.horoscope-btn-done:hover {
+  background: #a83a57;
+  transform: scale(1.02);
+}
+
+.horoscope-back {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
+  border: none;
+  background: none;
+  color: #636e72;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.horoscope-back:hover {
+  color: #c44569;
+}

@@ -75,3 +75,14 @@ class TarotReading(Base):
     present_card_uuid: Mapped[str] = mapped_column(String(64), nullable=False)
     future_card_uuid: Mapped[str] = mapped_column(String(64), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class HoroscopePrediction(Base):
+    __tablename__ = "horoscope_predictions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

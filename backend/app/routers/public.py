@@ -1,16 +1,32 @@
 from datetime import datetime, timedelta
+import random
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import Girl, AccessCode, Game, TarotCard, TarotReading
-from app.schemas import GirlOut, GameOut, RequestCodeIn, VerifyCodeIn, TokenOut, CertificateOut, TarotCardOut, TarotDrawIn, TarotDrawOut
+from app.models import Girl, AccessCode, Game, TarotCard, TarotReading, HoroscopePrediction
+from app.schemas import (
+    GirlOut,
+    GameOut,
+    RequestCodeIn,
+    VerifyCodeIn,
+    TokenOut,
+    CertificateOut,
+    TarotCardOut,
+    TarotDrawIn,
+    TarotDrawOut,
+    HoroscopeRoleOut,
+    HoroscopeSignOut,
+    HoroscopePredictionOut,
+    HoroscopePredictionRequest,
+)
 from app.auth import create_access_token, require_girl
 from app.email import send_code_email
 from app.config import settings
+from app.horoscope_data import ROLES, SIGNS, EASTER_EGG_PHRASES
 
 router = APIRouter(prefix="/api", tags=["public"])
 
@@ -124,3 +140,112 @@ async def create_certificate(
     await db.flush()
     url = f"{settings.base_url}/certificate/{token}"
     return CertificateOut(url=url, token=token)
+
+
+# --- Horoscope (8 March mini-game) ---
+
+@router.get("/horoscope/roles", response_model=list[HoroscopeRoleOut])
+async def list_horoscope_roles():
+    return [HoroscopeRoleOut.model_validate(r) for r in ROLES]
+
+
+@router.get("/horoscope/signs", response_model=list[HoroscopeSignOut])
+async def list_horoscope_signs():
+    return [HoroscopeSignOut.model_validate(s) for s in SIGNS]
+
+
+EASTER_EGG_START = "{{EASTER}}"
+EASTER_EGG_END = "{{/EASTER}}"
+
+
+def _insert_easter_egg(text: str) -> str:
+    """Вставляет несколько пасхалок (2–4) в текст, каждая в маркерах для стилизации на фронте."""
+    if not EASTER_EGG_PHRASES:
+        return text
+    words = text.split()
+    if len(words) < 2:
+        wrapped = f"{EASTER_EGG_START}{random.choice(EASTER_EGG_PHRASES).strip()}{EASTER_EGG_END}"
+        return text + " " + wrapped
+    n_insert = random.randint(2, 4)
+    for _ in range(n_insert):
+        phrase = random.choice(EASTER_EGG_PHRASES).strip()
+        wrapped = f"{EASTER_EGG_START}{phrase}{EASTER_EGG_END}"
+        pos = random.randint(0, len(words))
+        words.insert(pos, wrapped)
+    return " ".join(words)
+
+
+def _get_role_and_sign(role_id: str, sign_id: str) -> tuple[dict, dict]:
+    role_by_id = {r["id"]: r for r in ROLES}
+    sign_by_id = {s["id"]: s for s in SIGNS}
+    role = role_by_id.get(role_id)
+    sign = sign_by_id.get(sign_id)
+    if not role or not sign:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unknown role_id or sign_id",
+        )
+    return role, sign
+
+
+async def _fetch_horoscope_text(role_id: str, sign_id: str, db: AsyncSession) -> str:
+    role, sign = _get_role_and_sign(role_id, sign_id)
+    result = await db.execute(
+        select(HoroscopePrediction).where(HoroscopePrediction.is_active).order_by(HoroscopePrediction.sort_order, HoroscopePrediction.id)
+    )
+    predictions = list(result.scalars().all())
+    if not predictions:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="No predictions in database",
+        )
+    pred = random.choice(predictions)
+    sentence = f"{sign['label_rod']} {role['label_rod']} ждёт: {pred.text}"
+    return _insert_easter_egg(sentence)
+
+
+@router.get("/horoscope/prediction", response_model=HoroscopePredictionOut)
+async def get_horoscope_prediction_get(
+    role_id: str = Query(..., alias="role_id"),
+    sign_id: str = Query(..., alias="sign_id"),
+    db: AsyncSession = Depends(get_db),
+):
+    text = await _fetch_horoscope_text(role_id, sign_id, db)
+    return HoroscopePredictionOut(text=text)
+
+
+@router.post("/horoscope/prediction", response_model=HoroscopePredictionOut)
+async def get_horoscope_prediction_post(
+    body: HoroscopePredictionRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    text = await _fetch_horoscope_text(body.role_id, body.sign_id, db)
+    return HoroscopePredictionOut(text=text)
+    if not rid or not sid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="role_id and sign_id are required",
+        )
+    role_by_id = {r["id"]: r for r in ROLES}
+    sign_by_id = {s["id"]: s for s in SIGNS}
+    role = role_by_id.get(rid)
+    sign = sign_by_id.get(sid)
+    if not role or not sign:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unknown role_id or sign_id",
+        )
+    result = await db.execute(
+        select(HoroscopePrediction).where(HoroscopePrediction.is_active).order_by(HoroscopePrediction.sort_order, HoroscopePrediction.id)
+    )
+    predictions = list(result.scalars().all())
+    if not predictions:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="No predictions in database",
+        )
+    pred = random.choice(predictions)
+    # Итоговая фраза: «[Знак род.] [роль род.] ждёт: [текст]»
+    sentence = f"{sign['label_rod']} {role['label_rod']} ждёт: {pred.text}"
+    sentence = _insert_easter_egg(sentence)
+    return HoroscopePredictionOut(text=sentence)

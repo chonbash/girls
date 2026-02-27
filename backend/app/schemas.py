@@ -106,3 +106,48 @@ class TarotCardAdminOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Horoscope
+class HoroscopeRoleOut(BaseModel):
+    id: str
+    label: str
+    label_rod: str
+
+
+class HoroscopeSignOut(BaseModel):
+    id: str
+    label: str
+    label_rod: str
+
+
+class HoroscopePredictionOut(BaseModel):
+    text: str
+
+
+class HoroscopePredictionRequest(BaseModel):
+    role_id: str
+    sign_id: str
+
+
+class HoroscopePredictionCreate(BaseModel):
+    text: str
+    sort_order: int = 0
+    is_active: bool = True
+
+
+class HoroscopePredictionUpdate(BaseModel):
+    text: str | None = None
+    sort_order: int | None = None
+    is_active: bool | None = None
+
+
+class HoroscopePredictionAdminOut(BaseModel):
+    id: int
+    uuid: str
+    text: str
+    sort_order: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True
