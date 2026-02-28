@@ -1,7 +1,7 @@
 export const HOROSCOPE_SLUG = 'horoscope';
 export const CUSTOM_GAME_SLUGS: string[] = [HOROSCOPE_SLUG];
 import type { ComponentType } from 'react';
-import TarotGame from '../pages/TarotGame';
+import TarotGame from './tarot/TarotGame.tsx';
 import FutureLetterGame from './future-letter/FutureLetterGame';
 import HoroscopeGame from './horoscope/HoroscopeGame';
 
