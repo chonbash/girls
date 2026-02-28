@@ -105,7 +105,7 @@ export default function Auth() {
               type="text"
               placeholder="Введи код"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value?.toUpperCase())}
               className="auth-input"
               autoFocus
             />
