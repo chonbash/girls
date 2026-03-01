@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { drawTarotCards, type TarotCard, type TarotDrawResult } from '../api';
-import tarotCardBack1Url from '../assets/tarot-card-back-1.svg?url';
-import tarotCardBack2Url from '../assets/tarot-card-back-2.svg?url';
-import tarotCardBack3Url from '../assets/tarot-card-back-3.svg?url';
-import { markGameCompleted } from '../games/completed';
+import { drawTarotCards, type TarotCard, type TarotDrawResult } from '../../api.ts';
+import tarotCardBack1Url from '../../assets/tarot-card-back-1.svg?url';
+import tarotCardBack2Url from '../../assets/tarot-card-back-2.svg?url';
+import tarotCardBack3Url from '../../assets/tarot-card-back-3.svg?url';
+import { markGameCompleted } from '../completed.ts';
 import './TarotGame.css';
 
 type Step = 'question' | 'shuffling' | 'spread';
