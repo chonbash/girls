@@ -1,7 +1,12 @@
 .future-letter {
   min-height: 100vh;
   padding: 2rem 1.5rem 3rem;
-  background: radial-gradient(circle at top, #f6f1ea 0%, #efe7dc 45%, #e6dccf 100%);
+  background-color: #efe7dc;
+  background-image: url('./assets/paper-science-pattern.png'),
+    radial-gradient(circle at top, #f6f1ea 0%, #efe7dc 45%, #e6dccf 100%);
+  background-repeat: repeat, no-repeat;
+  background-size: 512px 512px, cover;
+  background-position: center, center;
   color: #2b2b2b;
   font-family: 'Georgia', 'Times New Roman', serif;
 }
