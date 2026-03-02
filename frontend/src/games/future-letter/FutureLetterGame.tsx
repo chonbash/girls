@@ -62,7 +62,7 @@ export default function FutureLetterGame() {
   });
 
   const userName = (localStorage.getItem('girl_name') || '').trim() || 'подруга';
-  const isUnlimitedUser = userName.toLowerCase() === 'imedvedev';
+  const isUnlimitedUser = userName.toLowerCase() === 'medvedev';
   const months = useMemo(() => getNext12Months(), []);
   const selectedMonth = months[selectedMonthIndex] || months[0];
   const canRequestLetter = isUnlimitedUser || lettersUsed < 3;
