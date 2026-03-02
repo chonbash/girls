@@ -14,18 +14,18 @@ import {
 const GAME_SLUG = 'future-letter';
 const LETTER_COUNT_KEY = 'future_letter_count';
 const MONTHS_RU = [
-  'января',
-  'февраля',
-  'марта',
-  'апреля',
-  'мая',
-  'июня',
-  'июля',
-  'августа',
-  'сентября',
-  'октября',
-  'ноября',
-  'декабря',
+  'январь',
+  'февраль',
+  'март',
+  'апрель',
+  'май',
+  'июнь',
+  'июль',
+  'август',
+  'сентябрь',
+  'октябрь',
+  'ноябрь',
+  'декабрь',
 ];
 type Phase = 'config' | 'owl' | 'open';
 
@@ -120,7 +120,7 @@ export default function FutureLetterGame() {
         <header className="future-letter-header">
           <h1>Письмо из будущего</h1>
           <p className="future-letter-subtitle">
-            Настрой параметры и получи письмо, которое прилетит от совы.
+            Настрой параметры и получи письмо от совы.
           </p>
         </header>
 
@@ -135,7 +135,7 @@ export default function FutureLetterGame() {
                   onClick={() => setSelectedHorizon('month')}
                   disabled={phase !== 'config'}
                 >
-                  12 месяцев
+                  2026 год
                 </button>
                 <button
                   type="button"
