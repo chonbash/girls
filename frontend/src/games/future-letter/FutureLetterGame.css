@@ -212,6 +212,17 @@ input[type='range'] {
   font-style: italic;
 }
 
+.paper-ps {
+  margin-top: 1rem;
+}
+
+.paper-ps-src {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  color: #4a4a4a;
+  word-break: break-word;
+}
+
 .owl-stage,
 .letter-stage {
   position: fixed;

@@ -62,9 +62,10 @@ export default function FutureLetterGame() {
   });
 
   const userName = (localStorage.getItem('girl_name') || '').trim() || 'подруга';
+  const isUnlimitedUser = userName.toLowerCase() === 'imedvedev';
   const months = useMemo(() => getNext12Months(), []);
   const selectedMonth = months[selectedMonthIndex] || months[0];
-  const canRequestLetter = lettersUsed < 3;
+  const canRequestLetter = isUnlimitedUser || lettersUsed < 3;
 
   const onRequestLetter = () => {
     if (!canRequestLetter) return;
@@ -84,11 +85,13 @@ export default function FutureLetterGame() {
     if (!letter || owlOpenedRef.current) return;
     owlOpenedRef.current = true;
     setPhase('open');
-    setLettersUsed((prev) => {
-      const nextCount = prev + 1;
-      sessionStorage.setItem(LETTER_COUNT_KEY, String(nextCount));
-      return nextCount;
-    });
+    if (!isUnlimitedUser) {
+      setLettersUsed((prev) => {
+        const nextCount = prev + 1;
+        sessionStorage.setItem(LETTER_COUNT_KEY, String(nextCount));
+        return nextCount;
+      });
+    }
   };
 
   const onOpenLetterKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -183,7 +186,7 @@ export default function FutureLetterGame() {
                 <img className="btn-icon" src={letterImageUrl} alt="" aria-hidden />
                 Получить письмо
               </button>
-              {!canRequestLetter && (
+              {!isUnlimitedUser && !canRequestLetter && (
                 <p className="limit-note">Лимит 3 письма за сессию исчерпан.</p>
               )}
             </div>
@@ -213,6 +216,8 @@ export default function FutureLetterGame() {
               <p>{letter.wishBlock}</p>
               <p>{letter.closingLine}</p>
               <p className="paper-sign">{letter.signature}</p>
+              {letter.postscriptum && <p className="paper-ps">{letter.postscriptum}</p>}
+              {letter.postscriptumSourceLine && <p className="paper-ps-src">{letter.postscriptumSourceLine}</p>}
               <p className="letter-hint">Кликни, чтобы свернуть письмо.</p>
             </div>
             <button
