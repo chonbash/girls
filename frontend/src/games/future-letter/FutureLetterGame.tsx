@@ -2,6 +2,9 @@ import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { markGameCompleted } from '../completed';
 import './FutureLetterGame.css';
+import owlImageUrl from './assets/Pattern2_owl.png?url';
+import calendarImageUrl from './assets/Pattern3_calendar.png?url';
+import letterImageUrl from './assets/Pattern5_letter.png?url';
 import {
   buildLetterTemplate,
   getTemperatureToneHint,
@@ -156,7 +159,10 @@ export default function FutureLetterGame() {
 
             {selectedHorizon === 'month' && (
               <div className="panel-block">
-                <h2>Месяц</h2>
+                <h2 className="panel-title">
+                  <img className="panel-icon" src={calendarImageUrl} alt="" aria-hidden />
+                  Месяц
+                </h2>
                 <div className="month-grid">
                   {months.map((m, idx) => (
                     <button
@@ -195,6 +201,7 @@ export default function FutureLetterGame() {
 
             <div className="panel-actions">
               <button type="button" onClick={onRequestLetter} disabled={!canRequestLetter || phase !== 'config'}>
+                <img className="btn-icon" src={letterImageUrl} alt="" aria-hidden />
                 Получить письмо
               </button>
               {!canRequestLetter && (
@@ -231,13 +238,7 @@ export default function FutureLetterGame() {
         {phase === 'owl' && (
           <div className="owl-stage">
             <div className="owl" role="button" tabIndex={0} onClick={onOpenLetter} onKeyDown={onOpenLetterKeyDown}>
-              <div className="owl-body">
-                <div className="owl-eye" />
-                <div className="owl-eye" />
-                <div className="owl-wing" />
-                <div className="owl-wing" />
-                <div className="owl-letter" />
-              </div>
+              <img className="owl-img" src={owlImageUrl} alt="Сова с письмом" />
               <p>Сова принесла письмо. Нажми, чтобы открыть.</p>
             </div>
           </div>
