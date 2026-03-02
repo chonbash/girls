@@ -7,7 +7,6 @@ import calendarImageUrl from './assets/Pattern3_calendar.png?url';
 import letterImageUrl from './assets/Pattern5_letter.png?url';
 import {
   buildLetterTemplate,
-  getTemperatureToneHint,
   type Horizon,
   type LetterData,
 } from './templates';
@@ -54,7 +53,7 @@ export default function FutureLetterGame() {
   const [phase, setPhase] = useState<Phase>('config');
   const [selectedHorizon, setSelectedHorizon] = useState<Horizon>('month');
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);
-  const [temperature, setTemperature] = useState(35);
+  const [temperature] = useState(35);
   const [letter, setLetter] = useState<LetterData | null>(null);
   const [lettersUsed, setLettersUsed] = useState(() => {
     const raw = sessionStorage.getItem(LETTER_COUNT_KEY);
@@ -179,26 +178,6 @@ export default function FutureLetterGame() {
               </div>
             )}
 
-            <div className="panel-block">
-              <div className="temp-title">
-                <h2>Температура сценария</h2>
-                <span>{temperature}</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={temperature}
-                onChange={(e) => setTemperature(Number(e.target.value))}
-                disabled={phase !== 'config'}
-              />
-              <div className="temp-labels">
-                <span>Реализм</span>
-                <span>Постапок</span>
-              </div>
-              <p className="temp-hint">{getTemperatureToneHint(temperature)}</p>
-            </div>
-
             <div className="panel-actions">
               <button type="button" onClick={onRequestLetter} disabled={!canRequestLetter || phase !== 'config'}>
                 <img className="btn-icon" src={letterImageUrl} alt="" aria-hidden />
@@ -210,29 +189,6 @@ export default function FutureLetterGame() {
             </div>
           </section>
 
-          <section className="future-letter-preview">
-            <div className="paper">
-              <div className="paper-title">Черновик письма</div>
-              <div className="paper-body">
-                {letter ? (
-                  <>
-                    <h3>{letter.title}</h3>
-                    <p className="paper-subtitle">{letter.greeting}</p>
-                    <p className="paper-meta">{letter.authorLine}</p>
-                    <p className="paper-date">{letter.dateLine}</p>
-                    <p>{letter.originBlock}</p>
-                    <p>{letter.weatherBlock}</p>
-                    <p>{letter.workBlock}</p>
-                    <p>{letter.wishBlock}</p>
-                    <p>{letter.closingLine}</p>
-                    <p className="paper-sign">{letter.signature}</p>
-                  </>
-                ) : (
-                  <p>Выбери период и параметры, чтобы увидеть черновик письма.</p>
-                )}
-              </div>
-            </div>
-          </section>
         </div>
 
         {phase === 'owl' && (

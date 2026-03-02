@@ -28,7 +28,7 @@
 
 .future-letter-layout {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(280px, 1fr);
+  grid-template-columns: minmax(260px, 1fr);
   gap: 1.5rem;
 }
 
@@ -75,6 +75,7 @@
   border-radius: 999px;
   padding: 0.5rem 1rem;
   background: #ffffff;
+  color: #1f4b6e;
   cursor: pointer;
   font-weight: 600;
 }
@@ -96,6 +97,7 @@
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #fff;
+  color: #1f4b6e;
   cursor: pointer;
   text-transform: capitalize;
 }
