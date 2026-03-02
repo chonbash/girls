@@ -223,6 +223,16 @@ input[type='range'] {
   word-break: break-word;
 }
 
+.paper-ps-src a {
+  color: #1f4b6e;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.paper-ps-src a:hover {
+  text-decoration-thickness: 2px;
+}
+
 .owl-stage,
 .letter-stage {
   position: fixed;

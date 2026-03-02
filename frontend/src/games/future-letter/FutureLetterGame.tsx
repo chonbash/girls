@@ -217,7 +217,21 @@ export default function FutureLetterGame() {
               <p>{letter.closingLine}</p>
               <p className="paper-sign">{letter.signature}</p>
               {letter.postscriptum && <p className="paper-ps">{letter.postscriptum}</p>}
-              {letter.postscriptumSourceLine && <p className="paper-ps-src">{letter.postscriptumSourceLine}</p>}
+              {letter.postscriptumSourceTitle && letter.postscriptumSourceUrl && (
+                <p className="paper-ps-src">
+                  {letter.postscriptumSourceTitle} на{' '}
+                  <a
+                    href={letter.postscriptumSourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    Кинопоиске
+                  </a>
+                  .
+                </p>
+              )}
               <p className="letter-hint">Кликни, чтобы свернуть письмо.</p>
             </div>
             <button

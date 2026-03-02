@@ -12,7 +12,8 @@ export type LetterData = {
   wishBlock: string;
   closingLine: string;
   postscriptum?: string;
-  postscriptumSourceLine?: string;
+  postscriptumSourceTitle?: string;
+  postscriptumSourceUrl?: string;
   signature: string;
 };
 
@@ -205,11 +206,18 @@ export function buildLetterTemplate({
         ? `P.S. ${dateFrom.getFullYear()} год. После легализации "цифровых личностей" часть руководителей и экспертов существует сразу в двух режимах: человек и его вычислительная копия, которая ведет переговоры, держит память решений и помогает не терять контекст десятилетиями. Мы научились задавать простое правило: копия может быть полезной, но ответственность остается человеческой.`
         : undefined;
 
-  const postscriptumSourceLine =
+  const postscriptumSourceTitle =
     horizon === '5y'
-      ? 'Художественный фильм «Она» (Her, 2013) на Кинопоиске: https://www.kinopoisk.ru/index.php?kp_query=%D0%9E%D0%BD%D0%B0%20Her%202013'
+      ? 'Художественный фильм «Она» (Her, 2013)'
       : horizon === '50y'
-        ? 'Художественный сериал «Пантеон» (Pantheon) на Кинопоиске: https://www.kinopoisk.ru/index.php?kp_query=%D0%9F%D0%B0%D0%BD%D1%82%D0%B5%D0%BE%D0%BD%20Pantheon'
+        ? 'Художественный сериал «Пантеон» (Pantheon)'
+        : undefined;
+
+  const postscriptumSourceUrl =
+    horizon === '5y'
+      ? 'https://www.kinopoisk.ru/index.php?kp_query=%D0%9E%D0%BD%D0%B0%20Her%202013'
+      : horizon === '50y'
+        ? 'https://www.kinopoisk.ru/index.php?kp_query=%D0%9F%D0%B0%D0%BD%D1%82%D0%B5%D0%BE%D0%BD%20Pantheon'
         : undefined;
 
   return {
@@ -226,7 +234,8 @@ export function buildLetterTemplate({
     wishBlock,
     closingLine,
     postscriptum,
-    postscriptumSourceLine,
+    postscriptumSourceTitle,
+    postscriptumSourceUrl,
     signature:
       horizon === '50y'
         ? 'С уважением и теплом, кибернетический организм Председателя Правления одного синего банка'
