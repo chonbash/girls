@@ -103,4 +103,6 @@ jobs:
             pip install -r requirements.txt -q
             alembic upgrade head
             python scripts/seed_games.py
+            python scripts/seed_horoscope_predictions.py
+            python scripts/seed_tarot_cards.py
             sudo systemctl restart girls-api || true

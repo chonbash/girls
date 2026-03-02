@@ -133,23 +133,31 @@ export default function HoroscopeGame() {
         <h1 className="horoscope-title">Гороскоп на день</h1>
 
         {step === 'role' && (
-          <div className="horoscope-step">
-            <p className="horoscope-prompt">Выберите вашу роль в ИТ</p>
-            {error && <p className="horoscope-error">{error}</p>}
-            <ul className="horoscope-choices">
-              {roles.map((r) => (
-                <li key={r.id}>
-                  <button
-                    type="button"
-                    className="horoscope-choice-btn"
-                    onClick={() => onSelectRole(r)}
-                  >
-                    {r.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+            <>
+              <div className="horoscope-step">
+                <p className="horoscope-prompt">Выберите вашу роль в ИТ</p>
+                {error && <p className="horoscope-error">{error}</p>}
+                <ul className="horoscope-choices">
+                  {roles.map((r) => (
+                    <li key={r.id}>
+                      <button
+                        type="button"
+                        className="horoscope-choice-btn"
+                        onClick={() => onSelectRole(r)}
+                      >
+                        {r.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+                <button type="button" className="horoscope-btn horoscope-btn-done" onClick={onFinish}>
+                    Завершить
+                </button>
+                <button type="button" className="horoscope-back" onClick={() => navigate('/games')}>
+                    ← К списку игр
+                </button>
+            </>
         )}
 
         {step === 'sign' && (
