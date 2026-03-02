@@ -53,7 +53,7 @@ export default function Landing() {
         </div>
       </div>
       <button type="button" className="landing-swipe-hint" onClick={goNext} aria-label="Далее">
-        ↑
+        <i className="arrow-swipe-hint"></i>
       </button>
     </div>
   );

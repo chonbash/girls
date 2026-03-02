@@ -79,8 +79,19 @@
   color: #c44569;
   cursor: pointer;
   transition: transform 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .landing-swipe-hint:hover {
   transform: translateX(-50%) scale(1.05);
 }
+.arrow-swipe-hint {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid #c44569;
+}
+
