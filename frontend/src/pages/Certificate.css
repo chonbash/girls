@@ -1,32 +1,46 @@
 .certificate-page {
   min-height: 100vh;
-  padding: 2rem;
+  padding: 1rem;
   background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
-.certificate-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  padding: 2rem 3rem;
+.certificate-postcard-wrap {
+  max-width: 390px;
+  width: 100%;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  max-width: 24rem;
 }
 
-.certificate-card h1 {
-  color: #c44569;
-  margin-bottom: 1rem;
-}
-
-.certificate-name {
-  font-size: 1.5rem;
+.certificate-greeting {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  color: #c44569;
 }
 
-.certificate-text {
-  color: #666;
+.certificate-postcard {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  aspect-ratio: 9 / 16;
+  max-height: 70vh;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.certificate-postcard-gif {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.certificate-sms-hint {
+  margin: 1.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  line-height: 1.4;
 }

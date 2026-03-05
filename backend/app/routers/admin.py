@@ -9,7 +9,6 @@ from app.database import get_db
 from app.models import Girl, Game, TarotCard, HoroscopePrediction
 from app.schemas import (
     GirlOut,
-    GirlCreate,
     GirlUpdate,
     TarotCardAdminOut,
     TarotCardCreate,
@@ -64,19 +63,6 @@ async def admin_list_girls(
 ):
     result = await db.execute(select(Girl).order_by(Girl.name))
     return [GirlOut.model_validate(g) for g in result.scalars().all()]
-
-
-@router.post("/girls", response_model=GirlOut)
-async def admin_create_girl(
-    data: GirlCreate,
-    db: AsyncSession = Depends(get_db),
-    _: bool = Depends(require_admin),
-):
-    girl = Girl(name=data.name, email=data.email, gift_certificate_url=data.gift_certificate_url or None)
-    db.add(girl)
-    await db.flush()
-    await db.refresh(girl)
-    return GirlOut.model_validate(girl)
 
 
 @router.patch("/girls/{girl_id}", response_model=GirlOut)

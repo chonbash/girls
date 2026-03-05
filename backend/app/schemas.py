@@ -52,6 +52,16 @@ class TokenOut(BaseModel):
     girl_id: int
 
 
+class RegisterIn(BaseModel):
+    name: str
+
+
+class RegisterOut(BaseModel):
+    access_token: str
+    girl_id: int
+    girl_name: str
+
+
 class CertificateOut(BaseModel):
     url: str
     token: str

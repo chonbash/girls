@@ -22,33 +22,15 @@ export interface Game {
   is_active: boolean;
 }
 
-export async function getGirls(): Promise<Girl[]> {
-  const r = await fetch(`${API}/girls`);
-  if (!r.ok) throw new Error('Failed to load girls');
-  return r.json();
-}
-
-export async function requestCode(girlId: number): Promise<void> {
-  const r = await fetch(`${API}/auth/request-code`, {
+export async function registerByName(name: string): Promise<{ access_token: string; girl_id: number; girl_name: string }> {
+  const r = await fetch(`${API}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ girl_id: girlId }),
+    body: JSON.stringify({ name: name.trim() }),
   });
   if (!r.ok) {
     const d = await r.json().catch(() => ({}));
-    throw new Error(d.detail || 'Failed to send code');
-  }
-}
-
-export async function verifyCode(girlId: number, code: string): Promise<{ access_token: string; girl_id: number }> {
-  const r = await fetch(`${API}/auth/verify`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ girl_id: girlId, code }),
-  });
-  if (!r.ok) {
-    const d = await r.json().catch(() => ({}));
-    throw new Error(Array.isArray(d.detail) ? d.detail[0]?.msg || 'Invalid code' : d.detail || 'Invalid code');
+    throw new Error(typeof d.detail === 'string' ? d.detail : 'Ошибка регистрации');
   }
   return r.json();
 }
@@ -127,25 +109,6 @@ export async function adminListGirls(password: string): Promise<Girl[]> {
     headers: { 'X-Admin-Password': password },
   });
   if (!r.ok) throw new Error('Unauthorized');
-  return r.json();
-}
-
-export async function adminCreateGirl(
-  password: string,
-  name: string,
-  email: string,
-  giftCertificateUrl?: string | null
-): Promise<Girl> {
-  const r = await fetch(`${API}/admin/girls`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
-    body: JSON.stringify({
-      name,
-      email,
-      gift_certificate_url: giftCertificateUrl?.trim() || null,
-    }),
-  });
-  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Failed');
   return r.json();
 }
 

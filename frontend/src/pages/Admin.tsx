@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import {
   adminListGirls,
-  adminCreateGirl,
   adminUpdateGirl,
   adminDeleteGirl,
   adminListTarotCards,
@@ -33,9 +32,6 @@ export default function Admin() {
   const [error, setError] = useState('');
   const [girls, setGirls] = useState<Girl[]>([]);
   const [loading, setLoading] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [newGiftCertificateUrl, setNewGiftCertificateUrl] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
@@ -85,26 +81,6 @@ try {
   const onSubmitPassword = (e: React.FormEvent) => {
     e.preventDefault();
     loadGirls();
-  };
-
-  const onAddGirl = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password || !newName.trim() || !newEmail.trim()) return;
-    setError('');
-    try {
-      await adminCreateGirl(
-        password,
-        newName.trim(),
-        newEmail.trim(),
-        newGiftCertificateUrl.trim() || null
-      );
-      setNewName('');
-      setNewEmail('');
-      setNewGiftCertificateUrl('');
-      await loadGirls();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
-    }
   };
 
   const startEdit = (g: Girl) => {
@@ -323,28 +299,6 @@ try {
     <div className="admin-page">
       <h1>Список девушек</h1>
       {error && <p className="admin-error">{error}</p>}
-      <form onSubmit={onAddGirl} className="admin-form">
-        <input
-          type="text"
-          placeholder="ФИО"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-        />
-        <input
-          type="url"
-          placeholder="Ссылка на подарочный сертификат"
-          value={newGiftCertificateUrl}
-          onChange={(e) => setNewGiftCertificateUrl(e.target.value)}
-          className="admin-form-url"
-        />
-        <button type="submit">Добавить</button>
-      </form>
       <ul className="admin-list">
         {girls.map((g) =>
           editingId === g.id ? (

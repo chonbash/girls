@@ -1,125 +1,53 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getGirls, requestCode, verifyCode, type Girl } from '../api';
+import { registerByName } from '../api';
 import './Auth.css';
 
 export default function Auth() {
   const navigate = useNavigate();
-  const [girls, setGirls] = useState<Girl[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState<'select' | 'code'>('select');
-  const [selected, setSelected] = useState<Girl | null>(null);
-  const [code, setCode] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    getGirls()
-      .then(setGirls)
-      .catch(() => setError('Не удалось загрузить список'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const onSelect = (g: Girl) => {
-    setSelected(g);
-    setStep('code');
-    setCode('');
-    setError('');
-    setSending(true);
-    requestCode(g.id)
-      .then(() => setError(''))
-      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка отправки'))
-      .finally(() => setSending(false));
-  };
-
-  const onRequestCode = async () => {
-    if (!selected) return;
-    setSending(true);
-    setError('');
-    try {
-      await requestCode(selected.id);
-      setError('');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка отправки');
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const onSubmitCode = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selected) return;
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError('Введите ваше имя');
+      return;
+    }
     setError('');
+    setLoading(true);
     try {
-      const { access_token } = await verifyCode(selected.id, code.trim());
+      const { access_token, girl_name } = await registerByName(trimmed);
       localStorage.setItem('access_token', access_token);
-      localStorage.setItem('girl_name', selected.name);
+      localStorage.setItem('girl_name', girl_name);
       navigate('/games', { replace: true });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Неверный код');
+      setError(e instanceof Error ? e.message : 'Ошибка входа');
+    } finally {
+      setLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="auth">
-        <p>Загрузка...</p>
-      </div>
-    );
-  }
-
-  if (girls.length === 0) {
-    return (
-      <div className="auth">
-        <p>Список пока пуст.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="auth">
-      <h1 className="auth-title">Выбери себя</h1>
-      {step === 'select' ? (
-        <ul className="auth-list">
-          {girls.map((g) => (
-            <li key={g.id}>
-              <button type="button" className="auth-button" onClick={() => onSelect(g)}>
-                {g.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="auth-code">
-          <p className="auth-selected">Привет, {selected!.name}!</p>
-          <p className="auth-hint">Код отправлен на {selected!.email}</p>
-          <button
-            type="button"
-            className="auth-link"
-            onClick={onRequestCode}
-            disabled={sending}
-          >
-            {sending ? 'Отправка...' : 'Отправить код повторно'}
-          </button>
-          <form onSubmit={onSubmitCode}>
-            <input
-              type="text"
-              placeholder="Введи код"
-              value={code}
-              onChange={(e) => setCode(e.target.value?.toUpperCase())}
-              className="auth-input"
-              autoFocus
-            />
-            <button type="submit" className="auth-submit">
-              Войти
-            </button>
-          </form>
-          {error && <p className="auth-error">{error}</p>}
-          <button type="button" className="auth-back" onClick={() => setStep('select')}>
-            ← Назад
-          </button>
-        </div>
-      )}
+      <h1 className="auth-title">Как к вам обращаться?</h1>
+      <form onSubmit={onSubmit} className="auth-code">
+        <input
+          type="text"
+          placeholder="Введите ФИО"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="auth-input"
+          autoFocus
+          disabled={loading}
+        />
+        <button type="submit" className="auth-submit" disabled={loading}>
+          {loading ? '...' : 'Войти'}
+        </button>
+      </form>
+      {error && <p className="auth-error">{error}</p>}
     </div>
   );
 }
