@@ -5,7 +5,6 @@ import Games from './pages/Games';
 import TarotGame from './games/tarot/TarotGame.tsx';
 import HoroscopeGame from './games/horoscope/HoroscopeGame';
 import GamePage from './pages/GamePage';
-import Certificate from './pages/Certificate';
 import Admin from './pages/Admin';
 import './App.css';
 import WhoYouAreGame from "./games/who-you-are/WhoYouAreGame.tsx";
@@ -21,7 +20,6 @@ export default function App() {
         <Route path="/games/tarot-cards" element={<TarotGame />} />
         <Route path="/games/horoscope" element={<HoroscopeGame />} />
         <Route path="/games/who-you-are" element={<WhoYouAreGame />} />
-        <Route path="/certificate/:token" element={<Certificate />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -53,9 +53,9 @@ export default function Games() {
         {games.map((g) => (
           <li key={g.id} className="games-item">
             <span className="games-item-title">{g.title}</span>
-            <span className="games-item-status">
+            {/* <span className="games-item-status">
               {completed.has(g.slug) ? '✓' : '—'}
-            </span>
+            </span> */}
             <button
               type="button"
               className="games-item-go"
@@ -68,16 +68,6 @@ export default function Games() {
       </ul>
       {games.length === 0 && (
         <p className="games-empty">Игр пока нет.</p>
-      )}
-      {allDone && (
-        <button
-          type="button"
-          className="games-finish"
-          onClick={onFinish}
-          disabled={finishing}
-        >
-          {finishing ? '...' : 'Получить сертификат'}
-        </button>
       )}
     </div>
   );
