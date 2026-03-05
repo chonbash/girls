@@ -129,9 +129,6 @@ export default function TarotGame() {
             <button type="button" className="tarot-btn tarot-btn-done" onClick={onDone}>
               Завершить
             </button>
-            <button type="button" className="tarot-back" onClick={() => navigate('/games')}>
-              ← К списку игр
-            </button>
           </div>
         )}
       </div>

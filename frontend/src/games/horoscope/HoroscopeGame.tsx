@@ -154,9 +154,6 @@ export default function HoroscopeGame() {
                 <button type="button" className="horoscope-btn horoscope-btn-done" onClick={onFinish}>
                     Завершить
                 </button>
-                <button type="button" className="horoscope-back" onClick={() => navigate('/games')}>
-                    ← К списку игр
-                </button>
             </>
         )}
 
