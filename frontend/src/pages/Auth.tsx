@@ -53,6 +53,7 @@ export default function Auth() {
     try {
       const { access_token } = await verifyCode(selected.id, code.trim());
       localStorage.setItem('access_token', access_token);
+      localStorage.setItem('girl_name', selected.name);
       navigate('/games', { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Неверный код');
