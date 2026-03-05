@@ -1,5 +1,6 @@
 .games-page {
   min-height: 100vh;
+  min-width: 400px;
   width: 30vw;
   padding: 2rem;
   background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
@@ -71,7 +72,6 @@
 .cover {
     width: 100vw;
     height: 100vh;
-    background: url(../assets/pixnio-6048x4032.jpg) no-repeat 
-center;    
+    background: url(../assets/pixnio-6048x4032.jpg) no-repeat center;    
     background-size: cover;
 }
