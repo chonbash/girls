@@ -1,27 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getGames, createCertificate, type Game } from '../api';
-import { readCompleted } from '../games/completed';
+import { getGames, type Game } from '../api';
 import './Games.css';
 
 export default function Games() {
   const navigate = useNavigate();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
-  const [completed, setCompleted] = useState<Set<string>>(readCompleted);
 
   useEffect(() => {
     getGames()
       .then(setGames)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
-
-  // Re-read completed when page becomes visible (e.g. back from game)
-  useEffect(() => {
-    const onVis = () => setCompleted(readCompleted());
-    document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
   if (loading) {
