@@ -268,12 +268,6 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
     }, 500);
   };
 
-  const getResultText = () => {
-    const total = currentQuestion.options.length;
-    const answered = selectedOption ? 1 : 0;
-    return `Выбрано ${answered} из ${total}`;
-  };
-
   return (
     <div className="question-screen" ref={questionRef}>
       <ProgressBar current={currentQuestionIndex + 1} total={totalQuestions} />
@@ -297,9 +291,6 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
           ))}
         </div>
         
-        <div className="answer-status">
-          {selectedOption ? getResultText() : 'Выбери свой путь...'}
-        </div>
         <button type="button" className="tarot-back" onClick={() => navigate('/games')}>
           ← К списку игр
         </button>

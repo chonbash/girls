@@ -24,7 +24,8 @@ export default function Games() {
   }
 
   return (
-    <div className="games-page">
+    <div className="cover">
+      <div className="games-page">
       <h1 className="games-title">Мини-игры</h1>
       <p className="games-hint">Пройди игры и получи сертификат</p>
       <ul className="games-list">
@@ -47,6 +48,8 @@ export default function Games() {
       {games.length === 0 && (
         <p className="games-empty">Игр пока нет.</p>
       )}
+      </div>
     </div>
+ 
   );
 }
