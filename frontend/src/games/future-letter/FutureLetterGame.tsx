@@ -189,6 +189,9 @@ export default function FutureLetterGame() {
               {!isUnlimitedUser && !canRequestLetter && (
                 <p className="limit-note">Лимит 3 письма за сессию исчерпан.</p>
               )}
+              <button type="button" className="tarot-back" onClick={() => navigate('/games')}>
+                ← К списку игр
+              </button>
             </div>
           </section>
 

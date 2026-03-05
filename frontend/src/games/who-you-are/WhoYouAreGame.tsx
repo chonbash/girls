@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './WhoYouAreGame.css';
+import { useNavigate } from 'react-router-dom';
+import devops from '../../assets/devops.jpg';
+import docs from '../../assets/docs.jpg';
+import front from '../../assets/front.jpg';
+import ninja from '../../assets/ninja.jpg';
+import senior from '../../assets/senior.jpg';
+
 
 // ============= TYPES =============
 type ArchetypeType = 'senior' | 'frontend' | 'qa' | 'documentation' | 'devops';
@@ -82,35 +89,35 @@ const archetypes: Archetype[] = [
   {
     id: 'senior',
     title: 'Сеньор-кофеист (Бэкенд-джедай)',
-    image: 'https://i.imgur.com/7YQqXkL.png',
+    image: senior,
     imageAlt: 'Котик, обнимающий кружку с сервером',
     description: 'Ты — опора всего бэкенда. Ты спокоен, как удаленный сервер, и надёжен, как утренний кофе. Пока фронтендеры спорят об отступах, ты уже написал 500 строк кода. Твой девиз: "Сначала кофе, потом код, потом мир во всём мире". Поздравляем!',
   },
   {
     id: 'frontend',
     title: 'Фронтенд-фея',
-    image: 'https://i.imgur.com/LgQzYqF.png',
+    image: front,
     imageAlt: 'Девушка с крыльями из CSS-тегов',
     description: 'Там, где ты появляешься, даже самая скучная страница начинает сиять и переливаться. Пользователи не знают, почему им нравится интерфейс, но они точно знают — он красив. Ты можешь починить вёрстку силой мысли и добавить анимацию одной левой. Сияй!',
   },
   {
     id: 'qa',
     title: 'Боевой тестировщик (QA-ниндзя)',
-    image: 'https://i.imgur.com/NZqQKpL.png',
+    image: ninja,
     imageAlt: 'Девушка в плаще с иконкой бага на груди',
     description: 'Разработчики боятся тебя, а баги плачут в углу, когда ты заходишь в офис. Ты видишь ошибки там, где их даже быть не может. Твой девиз: "Доверяй, но проверяй". Спасибо, что делаешь продукты лучше и не даёшь упасть продакшену!',
   },
   {
     id: 'documentation',
     title: 'Богиня документации',
-    image: 'https://i.imgur.com/KmQxWrM.png',
+    image: docs,
     imageAlt: 'Мудрая сова с блокнотом и ручкой',
     description: 'Пока остальные ищут "тот самый файлик" по всему диску, ты спокойно открываешь структуру и говоришь: "Вот же он, в папке docs". Ты — хранитель знаний и порядка. Без тебя проект бы давно превратился в кашу из кода и мемов. Ты наводишь порядок в хаосе!',
   },
   {
     id: 'devops',
     title: 'Девочка-админ (DevOps-леди)',
-    image: 'https://i.imgur.com/JqQpXwK.png',
+    image: devops,
     imageAlt: 'Девушка с серверами и автоматизацией',
     description: 'Ты любишь автоматизировать всё, включая поливку цветов. Docker, kubernetes, ci/cd — твои лучшие друзья. Ты знаешь, как поднять продакшен одной левой и починить любой сервер. Твой девиз: "Если это можно автоматизировать — это будет автоматизировано!"',
   },
@@ -140,6 +147,7 @@ interface StartScreenProps {
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   const [name, setName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Фокус на поле ввода при загрузке
@@ -187,6 +195,9 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
           <button className="start-button" onClick={handleStart}>
             Начать тест ✨
           </button>
+          <button type="button" className="tarot-back" onClick={() => navigate('/games')}>
+            ← К списку игр
+          </button>
         </div>
       </div>
     </div>
@@ -218,6 +229,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
+  const navigate = useNavigate();
 
   // Проверяем, был ли уже выбран ответ на этот вопрос
   useEffect(() => {
@@ -244,15 +256,15 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
     if (option) {
       onAnswer(currentQuestion.id, optionId, option.scores);
     }
-    
+
     setTimeout(() => {
-      setIsAnimating(false);
       if (isLastQuestion) {
         onFinish();
       } else {
         onNext();
       }
-    }, 800);
+      setIsAnimating(false);
+    }, 500);
   };
 
   const getResultText = () => {
@@ -287,6 +299,9 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
         <div className="answer-status">
           {selectedOption ? getResultText() : 'Выбери свой путь...'}
         </div>
+        <button type="button" className="tarot-back" onClick={() => navigate('/games')}>
+          ← К списку игр
+        </button>
       </div>
     </div>
   );
@@ -301,7 +316,8 @@ interface ResultScreenProps {
 
 const ResultScreen: React.FC<ResultScreenProps> = ({ scores, userName, onRestart }) => {
   const resultRef = useRef<HTMLDivElement>(null);
-  
+  const navigate = useNavigate();
+
   const getResultArchetype = (): Archetype => {
     let maxScore = -1;
     let resultArchetype: ArchetypeType = 'senior';
@@ -363,6 +379,9 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ scores, userName, onRestart
         
         <button className="restart-button" onClick={onRestart}>
           Пройти ещё раз 🔮
+        </button>
+        <button type="button" className="tarot-back" onClick={() => navigate('/games')}>
+          ← К списку игр
         </button>
       </div>
     </div>

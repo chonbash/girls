@@ -9,7 +9,7 @@ export default function Landing() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const goNext = useCallback(() => {
-    navigate('/auth', { replace: true });
+    navigate('/games', { replace: true });
   }, [navigate]);
 
   const onTouchStart = (e: React.TouchEvent) => {
