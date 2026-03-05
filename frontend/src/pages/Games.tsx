@@ -9,7 +9,6 @@ export default function Games() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState<Set<string>>(readCompleted);
-  const [finishing, setFinishing] = useState(false);
 
   useEffect(() => {
     getGames()
@@ -24,18 +23,6 @@ export default function Games() {
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
-
-  const allDone = games.length > 0 && games.every((g) => completed.has(g.slug));
-
-  const onFinish = async () => {
-    setFinishing(true);
-    try {
-      const { url } = await createCertificate();
-      window.location.href = url;
-    } catch {
-      setFinishing(false);
-    }
-  };
 
   if (loading) {
     return (
