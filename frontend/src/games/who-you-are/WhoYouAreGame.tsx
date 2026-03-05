@@ -235,6 +235,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
   useEffect(() => {
     const savedAnswer = answers[currentQuestion.id];
     if (savedAnswer) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedOption(savedAnswer);
     } else {
       setSelectedOption(null);
