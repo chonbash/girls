@@ -156,6 +156,19 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
     }
   }, []);
 
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      const el = inputRef.current;
+      if (document.activeElement === el) {
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
+
   const handleStart = () => {
     onStart(name);
   };
@@ -189,6 +202,10 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={handleKeyPress}
+              onFocus={() => {
+                const elToScroll = inputRef.current;
+                setTimeout(() => elToScroll?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+              }}
             />
           </div>
           
