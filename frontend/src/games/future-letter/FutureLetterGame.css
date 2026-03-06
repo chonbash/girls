@@ -260,9 +260,9 @@ input[type='range'] {
   padding: 2rem;
   max-width: 640px;
   width: 90%;
-  cursor: pointer;
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
   animation: letter-open 0.4s ease-out;
+  overflow: auto;
 }
 
 .letter-hint {
