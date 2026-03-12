@@ -1,39 +1,27 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  getHoroscopePrediction,
   getHoroscopeRoles,
   getHoroscopeSigns,
-  getHoroscopePrediction,
   type HoroscopeRole,
   type HoroscopeSign,
 } from '../../api';
+import { AppButton, GameShell, StatusMessage, SurfaceCard } from '../../components/AppShell';
+import { markGameCompleted } from '../completed';
 import './HoroscopeGame.css';
 
-const COMPLETED_KEY = 'girls_completed_games';
 const GAME_SLUG = 'horoscope';
-
-function getCompleted(): Set<string> {
-  try {
-    const s = sessionStorage.getItem(COMPLETED_KEY);
-    return new Set(s ? JSON.parse(s) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function markGameCompleted(slug: string) {
-  const set = getCompleted();
-  set.add(slug);
-  sessionStorage.setItem(COMPLETED_KEY, JSON.stringify([...set]));
-}
-
 const EASTER_MARKER_START = '{{EASTER}}';
 const EASTER_MARKER_END = '{{/EASTER}}';
 
-function renderPredictionWithEasterEgg(text: string): ReactNode {
+type Step = 'role' | 'sign' | 'result';
+
+function renderPrediction(text: string): ReactNode {
   const parts: ReactNode[] = [];
   let rest = text;
   let keyIdx = 0;
+
   while (rest.length > 0) {
     const startIdx = rest.indexOf(EASTER_MARKER_START);
     if (startIdx === -1) {
@@ -48,16 +36,15 @@ function renderPredictionWithEasterEgg(text: string): ReactNode {
       break;
     }
     parts.push(
-      <span key={`easter-${keyIdx++}`} className="horoscope-easter-egg">
+      <span key={`egg-${keyIdx++}`} className="horoscope-easter">
         {rest.slice(0, endIdx)}
-      </span>
+      </span>,
     );
     rest = rest.slice(endIdx + EASTER_MARKER_END.length);
   }
+
   return parts;
 }
-
-type Step = 'role' | 'sign' | 'prediction';
 
 export default function HoroscopeGame() {
   const navigate = useNavigate();
@@ -65,27 +52,33 @@ export default function HoroscopeGame() {
   const [roles, setRoles] = useState<HoroscopeRole[]>([]);
   const [signs, setSigns] = useState<HoroscopeSign[]>([]);
   const [selectedRole, setSelectedRole] = useState<HoroscopeRole | null>(null);
-  const [, setSelectedSign] = useState<HoroscopeSign | null>(null);
-  const [prediction, setPrediction] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [selectedSign, setSelectedSign] = useState<HoroscopeSign | null>(null);
+  const [prediction, setPrediction] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [predicting, setPredicting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
       try {
-        const [rolesList, signsList] = await Promise.all([
-          getHoroscopeRoles(),
-          getHoroscopeSigns(),
-        ]);
+        const [rolesList, signsList] = await Promise.all([getHoroscopeRoles(), getHoroscopeSigns()]);
         if (!cancelled) {
           setRoles(rolesList);
           setSigns(signsList);
         }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Ошибка загрузки');
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Ошибка загрузки');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -93,116 +86,124 @@ export default function HoroscopeGame() {
 
   const onSelectRole = (role: HoroscopeRole) => {
     setSelectedRole(role);
-    setStep('sign');
+    setSelectedSign(null);
+    setPrediction('');
     setError('');
+    setStep('sign');
   };
 
-  const onSelectSign = (sign: HoroscopeSign) => {
+  const onSelectSign = async (sign: HoroscopeSign) => {
+    if (!selectedRole) return;
+
     setSelectedSign(sign);
-    setStep('prediction');
+    setPredicting(true);
     setError('');
-    setLoading(true);
-    setPrediction(null);
-    getHoroscopePrediction(selectedRole!.id, sign.id)
-      .then((res) => setPrediction(res.text))
-      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка'))
-      .finally(() => setLoading(false));
-  };
+    setPrediction('');
 
-  const onFinish = () => {
-    markGameCompleted(GAME_SLUG);
-    navigate('/games');
-  };
-
-  const onBackToSigns = () => {
-    setSelectedSign(null);
-    setPrediction(null);
-    setStep('sign');
-  };
-
-  const onBackToRoles = () => {
-    setSelectedRole(null);
-    setSelectedSign(null);
-    setPrediction(null);
-    setStep('role');
+    try {
+      const result = await getHoroscopePrediction(selectedRole.id, sign.id);
+      setPrediction(result.text);
+      setStep('result');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка');
+    } finally {
+      setPredicting(false);
+    }
   };
 
   return (
-    <div className="horoscope-game">
-      <div className="horoscope-game-inner">
-        <h1 className="horoscope-title">Гороскоп на день</h1>
+    <GameShell
+      title="Гороскоп на день"
+      subtitle="Выбери роль и знак зодиака, затем заверши игру после получения персонального предсказания."
+      stepLabel={step === 'role' ? 'Роль' : step === 'sign' ? 'Знак' : 'Предсказание'}
+      progressLabel="2 из 3"
+    >
+      <SurfaceCard>
+        <div className="section-header">
+          <span className="section-header__label">Выбор</span>
+          <h2>
+            {step === 'role'
+              ? 'Определи свою роль'
+              : step === 'sign'
+                ? 'Выбери знак зодиака'
+                : 'Твоё предсказание готово'}
+          </h2>
+          <p>
+            {step === 'role'
+              ? 'Первый шаг единого сценария: сначала роль в ИТ.'
+              : step === 'sign'
+                ? 'Второй шаг: знак зодиака для генерации персонального текста.'
+                : 'Финальный шаг: прочитать текст и явно завершить игру.'}
+          </p>
+        </div>
 
-        {step === 'role' && (
-            <>
-              <div className="horoscope-step">
-                <p className="horoscope-prompt">Выберите вашу роль в ИТ</p>
-                {error && <p className="horoscope-error">{error}</p>}
-                <ul className="horoscope-choices">
-                  {roles.map((r) => (
-                    <li key={r.id}>
-                      <button
-                        type="button"
-                        className="horoscope-choice-btn"
-                        onClick={() => onSelectRole(r)}
-                      >
-                        {r.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-                <button type="button" className="horoscope-btn horoscope-btn-done" onClick={onFinish}>
-                    Завершить
-                </button>
-                <button type="button" className="horoscope-back" onClick={() => navigate('/games')}>
-                    ← К списку игр
-                </button>
-            </>
+        {loading && <StatusMessage kind="info">Загрузка данных...</StatusMessage>}
+        {error && <StatusMessage kind="error">{error}</StatusMessage>}
+
+        {!loading && step === 'role' && (
+          <div className="horoscope-options">
+            {roles.map((role) => (
+              <button key={role.id} type="button" className="horoscope-option" onClick={() => onSelectRole(role)}>
+                {role.label}
+              </button>
+            ))}
+          </div>
         )}
 
+        {!loading && step === 'sign' && (
+          <div className="horoscope-options">
+            {signs.map((sign) => (
+              <button key={sign.id} type="button" className="horoscope-option" onClick={() => void onSelectSign(sign)}>
+                {sign.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {predicting && <StatusMessage kind="info">Готовим персональное предсказание...</StatusMessage>}
+
+        {!loading && step === 'result' && prediction && (
+          <div className="horoscope-result">
+            <div className="horoscope-result__meta">
+              <span>{selectedRole?.label}</span>
+              <span>{selectedSign?.label}</span>
+            </div>
+            <p>{renderPrediction(prediction)}</p>
+          </div>
+        )}
+      </SurfaceCard>
+
+      <div className="game-shell__actions">
         {step === 'sign' && (
-          <div className="horoscope-step">
-            <p className="horoscope-prompt">Выберите знак зодиака</p>
-            {error && <p className="horoscope-error">{error}</p>}
-            <ul className="horoscope-choices horoscope-choices-signs">
-              {signs.map((s) => (
-                <li key={s.id}>
-                  <button
-                    type="button"
-                    className="horoscope-choice-btn"
-                    onClick={() => onSelectSign(s)}
-                  >
-                    {s.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="horoscope-back" onClick={onBackToRoles}>
-              ← Назад к ролям
-            </button>
-          </div>
+          <AppButton tone="secondary" onClick={() => setStep('role')}>
+            Вернуться к ролям
+          </AppButton>
         )}
-
-        {step === 'prediction' && (
-          <div className="horoscope-step horoscope-step-prediction">
-            {loading && <p className="horoscope-loading">Готовим предсказание...</p>}
-            {error && <p className="horoscope-error">{error}</p>}
-            {prediction && !loading && (
-              <>
-                <div className="horoscope-prediction-box">
-                  <p className="horoscope-prediction-text">{renderPredictionWithEasterEgg(prediction)}</p>
-                </div>
-                <button type="button" className="horoscope-btn-done" onClick={onFinish}>
-                  Завершить
-                </button>
-              </>
-            )}
-            <button type="button" className="horoscope-back" onClick={onBackToSigns}>
-              ← К знакам зодиака
-            </button>
-          </div>
+        {step === 'result' && (
+          <>
+            <AppButton
+              onClick={() => {
+                markGameCompleted(GAME_SLUG);
+                navigate('/games');
+              }}
+            >
+              Завершить игру
+            </AppButton>
+            <AppButton
+              tone="secondary"
+              onClick={() => {
+                setStep('role');
+                setSelectedRole(null);
+                setSelectedSign(null);
+                setPrediction('');
+                setError('');
+              }}
+            >
+              Составить новый гороскоп
+            </AppButton>
+          </>
         )}
       </div>
-    </div>
+    </GameShell>
   );
 }

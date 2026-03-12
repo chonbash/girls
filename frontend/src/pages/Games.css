@@ -1,68 +1,76 @@
-.games-page {
-  min-height: 100vh;
-  padding: 2rem;
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-}
-
-.games-title {
-  color: #c44569;
-  margin-bottom: 0.5rem;
-}
-
-.games-hint {
-  color: #666;
-  margin-bottom: 2rem;
-}
-
 .games-list {
-  list-style: none;
-  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.games-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid rgba(117, 41, 63, 0.12);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.games-card--done {
+  border-color: rgba(47, 140, 103, 0.24);
+  background: rgba(245, 255, 250, 0.85);
+}
+
+.games-card h3,
+.games-card p {
   margin: 0;
-  max-width: 24rem;
 }
 
-.games-item {
+.games-card p {
+  color: var(--text-muted);
+}
+
+.games-card__meta {
   display: flex;
+  justify-content: space-between;
+  gap: 12px;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
-  margin-bottom: 0.75rem;
 }
 
-.games-item-title {
-  flex: 1;
-  color: #2d3436;
-  font-weight: 500;
+.games-card__index,
+.games-card__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(181, 61, 98, 0.08);
+  color: var(--accent-strong);
+  font-size: 0.88rem;
 }
 
-.games-item-status {
-  color: #27ae60;
-  font-weight: bold;
+.games-card--done .games-card__status {
+  background: rgba(47, 140, 103, 0.12);
+  color: var(--success);
 }
 
-.games-item-go {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background: #c44569;
-  color: white;
-  cursor: pointer;
-  font-size: 0.9rem;
+.games-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
-.games-empty {
-  color: #666;
+.games-summary__item {
+  min-width: 160px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.75);
 }
 
-.games-finish {
-  margin-top: 2rem;
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: 12px;
-  background: #27ae60;
-  color: white;
-  font-size: 1.1rem;
-  cursor: pointer;
+.games-summary__item strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.games-summary__item span {
+  color: var(--text-muted);
 }

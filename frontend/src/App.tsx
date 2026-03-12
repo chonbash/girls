@@ -1,26 +1,22 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Landing from './pages/Landing';
-import Auth from './pages/Auth';
-import Games from './pages/Games';
-import TarotGame from './games/tarot/TarotGame.tsx';
-import HoroscopeGame from './games/horoscope/HoroscopeGame';
-import GamePage from './pages/GamePage';
-import Certificate from './pages/Certificate';
-import Admin from './pages/Admin';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
+import Admin from './pages/Admin';
+import Auth from './pages/Auth';
+import Certificate from './pages/Certificate';
+import GamePage from './pages/GamePage';
+import Games from './pages/Games';
+import Landing from './pages/Landing';
 
 export default function App() {
   return (
     <BrowserRouter basename="/girls">
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/games" element={<Games />} />
-        <Route path="/games/:slug" element={<GamePage />} />
-        <Route path="/games/tarot-cards" element={<TarotGame />} />
-        <Route path="/games/horoscope" element={<HoroscopeGame />} />
-        <Route path="/certificate/:token" element={<Certificate />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/" element={<div className="app-route"><Landing /></div>} />
+        <Route path="/auth" element={<div className="app-route"><Auth /></div>} />
+        <Route path="/games" element={<div className="app-route"><Games /></div>} />
+        <Route path="/games/:slug" element={<div className="app-route"><GamePage /></div>} />
+        <Route path="/certificate/:token" element={<div className="app-route"><Certificate /></div>} />
+        <Route path="/admin" element={<div className="app-route"><Admin /></div>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

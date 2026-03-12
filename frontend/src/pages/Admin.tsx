@@ -1,22 +1,24 @@
 import { useRef, useState } from 'react';
 import {
-  adminListGirls,
   adminCreateGirl,
-  adminUpdateGirl,
-  adminDeleteGirl,
-  adminListTarotCards,
-  adminCreateTarotCard,
-  adminUpdateTarotCard,
-  adminDeleteTarotCard,
-  adminUploadImage,
-  adminListHoroscopePredictions,
   adminCreateHoroscopePrediction,
-  adminUpdateHoroscopePrediction,
+  adminCreateTarotCard,
+  adminDeleteGirl,
   adminDeleteHoroscopePrediction,
+  adminDeleteTarotCard,
+  adminListGirls,
+  adminListHoroscopePredictions,
+  adminListTarotCards,
+  adminUpdateGirl,
+  adminUpdateHoroscopePrediction,
+  adminUpdateTarotCard,
+  adminUploadImage,
   type Girl,
-  type TarotCardAdmin,
   type HoroscopePredictionAdmin,
+  type TarotCardAdmin,
 } from '../api';
+import { AppButton, PageShell, SectionHeader, StatusMessage, SurfaceCard } from '../components/AppShell';
+import './Admin.css';
 
 function PencilIcon() {
   return (
@@ -25,22 +27,25 @@ function PencilIcon() {
     </svg>
   );
 }
-import './Admin.css';
 
 export default function Admin() {
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState('');
   const [girls, setGirls] = useState<Girl[]>([]);
+  const [cards, setCards] = useState<TarotCardAdmin[]>([]);
+  const [predictions, setPredictions] = useState<HoroscopePredictionAdmin[]>([]);
   const [loading, setLoading] = useState(false);
+
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newGiftCertificateUrl, setNewGiftCertificateUrl] = useState('');
+
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editGiftCertificateUrl, setEditGiftCertificateUrl] = useState('');
-  const [cards, setCards] = useState<TarotCardAdmin[]>([]);
+
   const [newCardTitle, setNewCardTitle] = useState('');
   const [newCardDescription, setNewCardDescription] = useState('');
   const [newCardImageUrl, setNewCardImageUrl] = useState('');
@@ -53,28 +58,29 @@ export default function Admin() {
   const [uploadingCardImage, setUploadingCardImage] = useState(false);
   const addCardFileRef = useRef<HTMLInputElement>(null);
   const editCardFileRef = useRef<HTMLInputElement>(null);
-  const [predictions, setPredictions] = useState<HoroscopePredictionAdmin[]>([]);
+
   const [newPredictionText, setNewPredictionText] = useState('');
   const [editingPredId, setEditingPredId] = useState<number | null>(null);
   const [editPredictionText, setEditPredictionText] = useState('');
   const [editPredictionSortOrder, setEditPredictionSortOrder] = useState(0);
   const [editPredictionActive, setEditPredictionActive] = useState(true);
 
-  const loadGirls = async () => {
+  const loadData = async () => {
     if (!password) return;
+
     setLoading(true);
     setError('');
-try {
-        const [list, cardList, predList] = await Promise.all([
-          adminListGirls(password),
-          adminListTarotCards(password),
-          adminListHoroscopePredictions(password),
-        ]);
-        setGirls(list);
-        setCards(cardList);
-        setPredictions(predList);
-        setAuthenticated(true);
-      } catch {
+    try {
+      const [girlsList, cardsList, predictionList] = await Promise.all([
+        adminListGirls(password),
+        adminListTarotCards(password),
+        adminListHoroscopePredictions(password),
+      ]);
+      setGirls(girlsList);
+      setCards(cardsList);
+      setPredictions(predictionList);
+      setAuthenticated(true);
+    } catch {
       setError('Неверный пароль');
       setAuthenticated(false);
     } finally {
@@ -82,80 +88,56 @@ try {
     }
   };
 
-  const onSubmitPassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    loadGirls();
-  };
-
-  const onAddGirl = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onAddGirl = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!password || !newName.trim() || !newEmail.trim()) return;
-    setError('');
     try {
-      await adminCreateGirl(
-        password,
-        newName.trim(),
-        newEmail.trim(),
-        newGiftCertificateUrl.trim() || null
-      );
+      await adminCreateGirl(password, newName.trim(), newEmail.trim(), newGiftCertificateUrl.trim() || null);
       setNewName('');
       setNewEmail('');
       setNewGiftCertificateUrl('');
-      await loadGirls();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка');
     }
   };
 
-  const startEdit = (g: Girl) => {
-    setEditingId(g.id);
-    setEditName(g.name);
-    setEditEmail(g.email);
-    setEditGiftCertificateUrl(g.gift_certificate_url ?? '');
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditName('');
-    setEditEmail('');
-    setEditGiftCertificateUrl('');
-  };
-
-  const onSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSaveGirl = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!password || editingId === null || !editName.trim() || !editEmail.trim()) return;
-    setError('');
     try {
       await adminUpdateGirl(password, editingId, {
         name: editName.trim(),
         email: editEmail.trim(),
         gift_certificate_url: editGiftCertificateUrl.trim() || null,
       });
-      cancelEdit();
-      await loadGirls();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка сохранения');
+      cancelEditGirl();
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка сохранения');
     }
   };
 
-  const onDelete = async (id: number) => {
-    if (!password) return;
-    if (!window.confirm('Удалить?')) return;
+  const cancelEditGirl = () => {
+    setEditingId(null);
+    setEditName('');
+    setEditEmail('');
+    setEditGiftCertificateUrl('');
+  };
+
+  const onDeleteGirl = async (girlId: number) => {
+    if (!window.confirm('Удалить запись?')) return;
     try {
-      await adminDeleteGirl(password, id);
-      await loadGirls();
-    } catch {
-      setError('Ошибка удаления');
+      await adminDeleteGirl(password, girlId);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка удаления');
     }
   };
 
-  const onAddCard = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password || !newCardTitle.trim() || !newCardDescription.trim()) {
-      setError('Заполните название и описание карты');
-      return;
-    }
-    setError('');
+  const onAddCard = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!password || !newCardTitle.trim() || !newCardDescription.trim()) return;
     try {
       await adminCreateTarotCard(password, {
         title: newCardTitle.trim(),
@@ -165,20 +147,10 @@ try {
       setNewCardTitle('');
       setNewCardDescription('');
       setNewCardImageUrl('');
-      const list = await adminListTarotCards(password);
-      setCards(list);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка');
     }
-  };
-
-  const startEditCard = (c: TarotCardAdmin) => {
-    setEditingCardId(c.id);
-    setEditCardTitle(c.title);
-    setEditCardDescription(c.description);
-    setEditCardImageUrl(c.image_url ?? '');
-    setEditCardActive(c.is_active);
-    setEditCardSortOrder(c.sort_order);
   };
 
   const cancelEditCard = () => {
@@ -190,10 +162,9 @@ try {
     setEditCardSortOrder(0);
   };
 
-  const onSaveCard = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSaveCard = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!password || editingCardId == null) return;
-    setError('');
     try {
       await adminUpdateTarotCard(password, editingCardId, {
         title: editCardTitle.trim(),
@@ -203,61 +174,38 @@ try {
         sort_order: editCardSortOrder,
       });
       cancelEditCard();
-      const list = await adminListTarotCards(password);
-      setCards(list);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка сохранения');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка сохранения');
     }
   };
 
-  const onDeleteCard = async (id: number) => {
-    if (!password) return;
+  const onDeleteCard = async (cardId: number) => {
     if (!window.confirm('Удалить карту?')) return;
     try {
-      await adminDeleteTarotCard(password, id);
-      const list = await adminListTarotCards(password);
-      setCards(list);
-    } catch {
-      setError('Ошибка удаления');
+      await adminDeleteTarotCard(password, cardId);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка удаления');
     }
   };
 
   const onUploadCardImage = async (file: File, forEdit: boolean) => {
-    if (!password) return;
-    setError('');
     setUploadingCardImage(true);
     try {
       const { url } = await adminUploadImage(password, file);
-      if (forEdit) setEditCardImageUrl(url);
-      else setNewCardImageUrl(url);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка загрузки');
+      if (forEdit) {
+        setEditCardImageUrl(url);
+      } else {
+        setNewCardImageUrl(url);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки');
     } finally {
       setUploadingCardImage(false);
       if (addCardFileRef.current) addCardFileRef.current.value = '';
       if (editCardFileRef.current) editCardFileRef.current.value = '';
     }
-  };
-
-  const onAddPrediction = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password || !newPredictionText.trim()) return;
-    setError('');
-    try {
-      await adminCreateHoroscopePrediction(password, { text: newPredictionText.trim() });
-      setNewPredictionText('');
-      const list = await adminListHoroscopePredictions(password);
-      setPredictions(list);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
-    }
-  };
-
-  const startEditPrediction = (p: HoroscopePredictionAdmin) => {
-    setEditingPredId(p.id);
-    setEditPredictionText(p.text);
-    setEditPredictionSortOrder(p.sort_order);
-    setEditPredictionActive(p.is_active);
   };
 
   const cancelEditPrediction = () => {
@@ -267,10 +215,21 @@ try {
     setEditPredictionActive(true);
   };
 
-  const onSavePrediction = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onAddPrediction = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!password || !newPredictionText.trim()) return;
+    try {
+      await adminCreateHoroscopePrediction(password, { text: newPredictionText.trim() });
+      setNewPredictionText('');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка');
+    }
+  };
+
+  const onSavePrediction = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!password || editingPredId == null) return;
-    setError('');
     try {
       await adminUpdateHoroscopePrediction(password, editingPredId, {
         text: editPredictionText.trim(),
@@ -278,311 +237,320 @@ try {
         is_active: editPredictionActive,
       });
       cancelEditPrediction();
-      const list = await adminListHoroscopePredictions(password);
-      setPredictions(list);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка сохранения');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка сохранения');
     }
   };
 
-  const onDeletePrediction = async (id: number) => {
-    if (!password) return;
+  const onDeletePrediction = async (predictionId: number) => {
     if (!window.confirm('Удалить предсказание?')) return;
     try {
-      await adminDeleteHoroscopePrediction(password, id);
-      const list = await adminListHoroscopePredictions(password);
-      setPredictions(list);
-    } catch {
-      setError('Ошибка удаления');
+      await adminDeleteHoroscopePrediction(password, predictionId);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка удаления');
     }
   };
 
   if (!authenticated) {
     return (
-      <div className="admin-page">
-        <form onSubmit={onSubmitPassword} className="admin-login">
-          <h1>Админка</h1>
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="admin-password-input"
-            autoFocus
+      <PageShell
+        eyebrow="Admin"
+        title="Административная панель"
+        subtitle="Тот же продуктовый shell, но для внутренних операций с получателями, картами и предсказаниями."
+      >
+        <SurfaceCard className="admin-login-card">
+          <SectionHeader
+            label="Доступ"
+            title="Войти по админ-паролю"
+            description="После успешной проверки загрузятся все управляемые сущности продукта."
           />
-          <button type="submit" disabled={loading}>
-            {loading ? '...' : 'Войти'}
-          </button>
-          {error && <p className="admin-error">{error}</p>}
-        </form>
-      </div>
+          {error && <StatusMessage kind="error">{error}</StatusMessage>}
+          <form
+            className="admin-form-stack"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void loadData();
+            }}
+          >
+            <input
+              className="app-field"
+              type="password"
+              placeholder="Пароль"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoFocus
+            />
+            <AppButton type="submit" disabled={loading}>
+              {loading ? 'Проверяем...' : 'Войти'}
+            </AppButton>
+          </form>
+        </SurfaceCard>
+      </PageShell>
     );
   }
 
   return (
-    <div className="admin-page">
-      <h1>Список девушек</h1>
-      {error && <p className="admin-error">{error}</p>}
-      <form onSubmit={onAddGirl} className="admin-form">
-        <input
-          type="text"
-          placeholder="ФИО"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-        />
-        <input
-          type="url"
-          placeholder="Ссылка на подарочный сертификат"
-          value={newGiftCertificateUrl}
-          onChange={(e) => setNewGiftCertificateUrl(e.target.value)}
-          className="admin-form-url"
-        />
-        <button type="submit">Добавить</button>
-      </form>
-      <ul className="admin-list">
-        {girls.map((g) =>
-          editingId === g.id ? (
-            <li key={g.id} className="admin-item admin-item-edit">
-              <form onSubmit={onSaveEdit} className="admin-edit-form">
-                <input
-                  type="text"
-                  placeholder="ФИО"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="admin-edit-input"
-                />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  className="admin-edit-input"
-                />
-                <input
-                  type="url"
-                  placeholder="Ссылка на сертификат"
-                  value={editGiftCertificateUrl}
-                  onChange={(e) => setEditGiftCertificateUrl(e.target.value)}
-                  className="admin-edit-input admin-edit-url"
-                />
-                <button type="submit" className="admin-save">Сохранить</button>
-                <button type="button" onClick={cancelEdit} className="admin-cancel">Отмена</button>
-              </form>
-            </li>
-          ) : (
-            <li key={g.id} className="admin-item">
-              <span>{g.name}</span>
-              <span className="admin-email">{g.email}</span>
-              {g.gift_certificate_url ? (
-                <a
-                  href={g.gift_certificate_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="admin-cert-link"
-                >
-                  Сертификат
-                </a>
-              ) : (
-                <span className="admin-no-cert">—</span>
-              )}
-              <span className="admin-actions">
-                <button type="button" onClick={() => startEdit(g)} className="admin-edit-btn" title="Редактировать">
-                  <PencilIcon />
-                </button>
-                <button type="button" onClick={() => onDelete(g.id)} className="admin-delete">
-                  Удалить
-                </button>
-              </span>
-            </li>
-          )
-        )}
-      </ul>
+    <PageShell
+      eyebrow="Admin"
+      title="Управление данными"
+      subtitle="Один административный маршрут для получателей, карт таро и базы гороскопов."
+    >
+      {error && <StatusMessage kind="error">{error}</StatusMessage>}
 
-      <h2 className="admin-section-title">Гадание на картах ПроПро</h2>
-      <form onSubmit={onAddCard} className="admin-form admin-form-cards">
-        <input
-          type="text"
-          placeholder="Название"
-          value={newCardTitle}
-          onChange={(e) => setNewCardTitle(e.target.value)}
-        />
-        <textarea
-          placeholder="Описание"
-          value={newCardDescription}
-          onChange={(e) => setNewCardDescription(e.target.value)}
-          rows={2}
-          className="admin-input-desc"
-        />
-        <div className="admin-upload-row">
-          <input
-            ref={addCardFileRef}
-            type="file"
-            accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
-            className="admin-upload-input"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) onUploadCardImage(f, false);
-            }}
+      <div className="admin-sections">
+        <SurfaceCard>
+          <SectionHeader
+            label="Girls"
+            title="Получатели и сертификаты"
+            description="Список персон с email и опциональной ссылкой на подарочный сертификат."
           />
-          <button
-            type="button"
-            className="admin-upload-btn"
-            disabled={uploadingCardImage}
-            onClick={() => addCardFileRef.current?.click()}
-          >
-            {uploadingCardImage ? 'Загрузка…' : 'Загрузить картинку'}
-          </button>
-          {newCardImageUrl && (
-            <span className="admin-upload-done">Картинка загружена</span>
-          )}
-        </div>
-        <button type="submit">Добавить карту</button>
-      </form>
-      <ul className="admin-list admin-list-cards">
-        {cards.map((c) =>
-          editingCardId === c.id ? (
-            <li key={c.id} className="admin-item admin-item-edit">
-              <form onSubmit={onSaveCard} className="admin-edit-form admin-edit-form-card">
-                <input
-                  type="text"
-                  placeholder="Название"
-                  value={editCardTitle}
-                  onChange={(e) => setEditCardTitle(e.target.value)}
-                  className="admin-edit-input"
-                />
-                <textarea
-                  placeholder="Описание"
-                  value={editCardDescription}
-                  onChange={(e) => setEditCardDescription(e.target.value)}
-                  rows={3}
-                  className="admin-edit-input admin-edit-desc"
-                />
-                <div className="admin-upload-row">
-                  <input
-                    ref={editCardFileRef}
-                    type="file"
-                    accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
-                    className="admin-upload-input"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) onUploadCardImage(f, true);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="admin-upload-btn"
-                    disabled={uploadingCardImage}
-                    onClick={() => editCardFileRef.current?.click()}
-                  >
-                    {uploadingCardImage ? 'Загрузка…' : 'Загрузить картинку'}
-                  </button>
-                  {editCardImageUrl && (
-                    <span className="admin-upload-done">Картинка загружена</span>
-                  )}
-                </div>
-                <label className="admin-edit-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={editCardActive}
-                    onChange={(e) => setEditCardActive(e.target.checked)}
-                  />
-                  Активна
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={editCardSortOrder}
-                  onChange={(e) => setEditCardSortOrder(parseInt(e.target.value, 10) || 0)}
-                  className="admin-edit-input admin-edit-sort"
-                />
-                <button type="submit" className="admin-save">Сохранить</button>
-                <button type="button" onClick={cancelEditCard} className="admin-cancel">Отмена</button>
-              </form>
-            </li>
-          ) : (
-            <li key={c.id} className="admin-item admin-item-card">
-              <strong className="admin-card-title">{c.title}</strong>
-              <span className="admin-card-desc">{c.description.slice(0, 80)}{c.description.length > 80 ? '…' : ''}</span>
-              {!c.is_active && <span className="admin-card-inactive">скрыта</span>}
-              <span className="admin-actions">
-                <button type="button" onClick={() => startEditCard(c)} className="admin-edit-btn" title="Редактировать">
-                  <PencilIcon />
-                </button>
-                <button type="button" onClick={() => onDeleteCard(c.id)} className="admin-delete">
-                  Удалить
-                </button>
-              </span>
-            </li>
-          )
-        )}
-      </ul>
+          <form className="admin-form-grid" onSubmit={onAddGirl}>
+            <input className="app-field" type="text" placeholder="ФИО" value={newName} onChange={(event) => setNewName(event.target.value)} />
+            <input className="app-field" type="email" placeholder="Email" value={newEmail} onChange={(event) => setNewEmail(event.target.value)} />
+            <input
+              className="app-field"
+              type="url"
+              placeholder="Ссылка на подарочный сертификат"
+              value={newGiftCertificateUrl}
+              onChange={(event) => setNewGiftCertificateUrl(event.target.value)}
+            />
+            <AppButton type="submit">Добавить</AppButton>
+          </form>
+          <div className="admin-list">
+            {girls.map((girl) => (
+              <div key={girl.id} className="admin-list-item">
+                {editingId === girl.id ? (
+                  <form className="admin-form-grid" onSubmit={onSaveGirl}>
+                    <input className="app-field" type="text" value={editName} onChange={(event) => setEditName(event.target.value)} />
+                    <input className="app-field" type="email" value={editEmail} onChange={(event) => setEditEmail(event.target.value)} />
+                    <input
+                      className="app-field"
+                      type="url"
+                      value={editGiftCertificateUrl}
+                      onChange={(event) => setEditGiftCertificateUrl(event.target.value)}
+                    />
+                    <div className="app-actions">
+                      <AppButton type="submit">Сохранить</AppButton>
+                      <AppButton type="button" tone="ghost" onClick={cancelEditGirl}>Отмена</AppButton>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="admin-list-item__content">
+                      <strong>{girl.name}</strong>
+                      <span>{girl.email}</span>
+                      {girl.gift_certificate_url ? (
+                        <a href={girl.gift_certificate_url} target="_blank" rel="noopener noreferrer">
+                          Сертификат
+                        </a>
+                      ) : (
+                        <span>Сертификат не задан</span>
+                      )}
+                    </div>
+                    <div className="app-actions">
+                      <AppButton
+                        type="button"
+                        tone="secondary"
+                        onClick={() => {
+                          setEditingId(girl.id);
+                          setEditName(girl.name);
+                          setEditEmail(girl.email);
+                          setEditGiftCertificateUrl(girl.gift_certificate_url ?? '');
+                        }}
+                      >
+                        <PencilIcon />
+                        Изменить
+                      </AppButton>
+                      <AppButton type="button" tone="ghost" onClick={() => void onDeleteGirl(girl.id)}>
+                        Удалить
+                      </AppButton>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </SurfaceCard>
 
-      <h2 className="admin-section-title">Предсказания гороскопа (8 Марта)</h2>
-      <p className="admin-hint">Тексты из общего пула. Роли и знаки заданы в коде.</p>
-      <form onSubmit={onAddPrediction} className="admin-form admin-form-cards">
-        <textarea
-          placeholder="Текст предсказания (например: придёт заказчик, знающий все процессы)"
-          value={newPredictionText}
-          onChange={(e) => setNewPredictionText(e.target.value)}
-          rows={2}
-          className="admin-input-desc"
-        />
-        <button type="submit">Добавить предсказание</button>
-      </form>
-      <ul className="admin-list admin-list-cards">
-        {predictions.map((p) =>
-          editingPredId === p.id ? (
-            <li key={p.id} className="admin-item admin-item-edit">
-              <form onSubmit={onSavePrediction} className="admin-edit-form admin-edit-form-card">
-                <textarea
-                  placeholder="Текст предсказания"
-                  value={editPredictionText}
-                  onChange={(e) => setEditPredictionText(e.target.value)}
-                  rows={3}
-                  className="admin-edit-input admin-edit-desc"
-                />
-                <label className="admin-edit-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={editPredictionActive}
-                    onChange={(e) => setEditPredictionActive(e.target.checked)}
-                  />
-                  Активно
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={editPredictionSortOrder}
-                  onChange={(e) => setEditPredictionSortOrder(parseInt(e.target.value, 10) || 0)}
-                  className="admin-edit-input admin-edit-sort"
-                />
-                <button type="submit" className="admin-save">Сохранить</button>
-                <button type="button" onClick={cancelEditPrediction} className="admin-cancel">Отмена</button>
-              </form>
-            </li>
-          ) : (
-            <li key={p.id} className="admin-item admin-item-card">
-              <strong className="admin-card-title">Предсказание</strong>
-              <span className="admin-card-desc">{p.text.slice(0, 120)}{p.text.length > 120 ? '…' : ''}</span>
-              {!p.is_active && <span className="admin-card-inactive">скрыто</span>}
-              <span className="admin-actions">
-                <button type="button" onClick={() => startEditPrediction(p)} className="admin-edit-btn" title="Редактировать">
-                  <PencilIcon />
-                </button>
-                <button type="button" onClick={() => onDeletePrediction(p.id)} className="admin-delete">
-                  Удалить
-                </button>
-              </span>
-            </li>
-          )
-        )}
-      </ul>
-    </div>
+        <SurfaceCard>
+          <SectionHeader
+            label="Tarot"
+            title="Колода ПроПро"
+            description="Карты, которые используются в унифицированной игре с раскладом."
+          />
+          <form className="admin-form-stack" onSubmit={onAddCard}>
+            <input className="app-field" type="text" placeholder="Название карты" value={newCardTitle} onChange={(event) => setNewCardTitle(event.target.value)} />
+            <textarea className="app-textarea" placeholder="Описание" value={newCardDescription} onChange={(event) => setNewCardDescription(event.target.value)} />
+            <div className="admin-upload-row">
+              <input
+                ref={addCardFileRef}
+                type="file"
+                accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+                className="admin-upload-input"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void onUploadCardImage(file, false);
+                }}
+              />
+              <AppButton type="button" tone="secondary" onClick={() => addCardFileRef.current?.click()} disabled={uploadingCardImage}>
+                {uploadingCardImage ? 'Загрузка...' : 'Загрузить картинку'}
+              </AppButton>
+              {newCardImageUrl && <span className="admin-upload-note">Картинка загружена</span>}
+            </div>
+            <AppButton type="submit">Добавить карту</AppButton>
+          </form>
+          <div className="admin-list">
+            {cards.map((card) => (
+              <div key={card.id} className="admin-list-item">
+                {editingCardId === card.id ? (
+                  <form className="admin-form-stack" onSubmit={onSaveCard}>
+                    <input className="app-field" type="text" value={editCardTitle} onChange={(event) => setEditCardTitle(event.target.value)} />
+                    <textarea className="app-textarea" value={editCardDescription} onChange={(event) => setEditCardDescription(event.target.value)} />
+                    <div className="admin-upload-row">
+                      <input
+                        ref={editCardFileRef}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+                        className="admin-upload-input"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) void onUploadCardImage(file, true);
+                        }}
+                      />
+                      <AppButton type="button" tone="secondary" onClick={() => editCardFileRef.current?.click()} disabled={uploadingCardImage}>
+                        {uploadingCardImage ? 'Загрузка...' : 'Загрузить картинку'}
+                      </AppButton>
+                      {editCardImageUrl && <span className="admin-upload-note">Картинка загружена</span>}
+                    </div>
+                    <div className="admin-inline-fields">
+                      <label className="admin-checkbox">
+                        <input type="checkbox" checked={editCardActive} onChange={(event) => setEditCardActive(event.target.checked)} />
+                        Активна
+                      </label>
+                      <input
+                        className="app-field"
+                        type="number"
+                        min={0}
+                        value={editCardSortOrder}
+                        onChange={(event) => setEditCardSortOrder(parseInt(event.target.value, 10) || 0)}
+                      />
+                    </div>
+                    <div className="app-actions">
+                      <AppButton type="submit">Сохранить</AppButton>
+                      <AppButton type="button" tone="ghost" onClick={cancelEditCard}>Отмена</AppButton>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="admin-list-item__content">
+                      <strong>{card.title}</strong>
+                      <span>{card.description.slice(0, 120)}{card.description.length > 120 ? '…' : ''}</span>
+                      <span>{card.is_active ? 'Активна' : 'Скрыта'} • sort {card.sort_order}</span>
+                    </div>
+                    <div className="app-actions">
+                      <AppButton
+                        type="button"
+                        tone="secondary"
+                        onClick={() => {
+                          setEditingCardId(card.id);
+                          setEditCardTitle(card.title);
+                          setEditCardDescription(card.description);
+                          setEditCardImageUrl(card.image_url ?? '');
+                          setEditCardActive(card.is_active);
+                          setEditCardSortOrder(card.sort_order);
+                        }}
+                      >
+                        <PencilIcon />
+                        Изменить
+                      </AppButton>
+                      <AppButton type="button" tone="ghost" onClick={() => void onDeleteCard(card.id)}>
+                        Удалить
+                      </AppButton>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </SurfaceCard>
+
+        <SurfaceCard>
+          <SectionHeader
+            label="Horoscope"
+            title="База предсказаний"
+            description="Тексты для унифицированной игры с гороскопом."
+          />
+          <form className="admin-form-stack" onSubmit={onAddPrediction}>
+            <textarea
+              className="app-textarea"
+              placeholder="Текст предсказания"
+              value={newPredictionText}
+              onChange={(event) => setNewPredictionText(event.target.value)}
+            />
+            <AppButton type="submit">Добавить предсказание</AppButton>
+          </form>
+          <div className="admin-list">
+            {predictions.map((prediction) => (
+              <div key={prediction.id} className="admin-list-item">
+                {editingPredId === prediction.id ? (
+                  <form className="admin-form-stack" onSubmit={onSavePrediction}>
+                    <textarea className="app-textarea" value={editPredictionText} onChange={(event) => setEditPredictionText(event.target.value)} />
+                    <div className="admin-inline-fields">
+                      <label className="admin-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={editPredictionActive}
+                          onChange={(event) => setEditPredictionActive(event.target.checked)}
+                        />
+                        Активно
+                      </label>
+                      <input
+                        className="app-field"
+                        type="number"
+                        min={0}
+                        value={editPredictionSortOrder}
+                        onChange={(event) => setEditPredictionSortOrder(parseInt(event.target.value, 10) || 0)}
+                      />
+                    </div>
+                    <div className="app-actions">
+                      <AppButton type="submit">Сохранить</AppButton>
+                      <AppButton type="button" tone="ghost" onClick={cancelEditPrediction}>Отмена</AppButton>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="admin-list-item__content">
+                      <strong>#{prediction.id}</strong>
+                      <span>{prediction.text}</span>
+                      <span>{prediction.is_active ? 'Активно' : 'Скрыто'} • sort {prediction.sort_order}</span>
+                    </div>
+                    <div className="app-actions">
+                      <AppButton
+                        type="button"
+                        tone="secondary"
+                        onClick={() => {
+                          setEditingPredId(prediction.id);
+                          setEditPredictionText(prediction.text);
+                          setEditPredictionSortOrder(prediction.sort_order);
+                          setEditPredictionActive(prediction.is_active);
+                        }}
+                      >
+                        <PencilIcon />
+                        Изменить
+                      </AppButton>
+                      <AppButton type="button" tone="ghost" onClick={() => void onDeletePrediction(prediction.id)}>
+                        Удалить
+                      </AppButton>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </SurfaceCard>
+      </div>
+    </PageShell>
   );
 }

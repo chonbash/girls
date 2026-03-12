@@ -1,173 +1,128 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { drawTarotCards, type TarotCard, type TarotDrawResult } from '../../api.ts';
-import tarotCardBack1Url from '../../assets/tarot-card-back-1.svg?url';
-import tarotCardBack2Url from '../../assets/tarot-card-back-2.svg?url';
-import tarotCardBack3Url from '../../assets/tarot-card-back-3.svg?url';
-import { markGameCompleted } from '../completed.ts';
+import { drawTarotCards, type TarotCard, type TarotDrawResult } from '../../api';
+import { AppButton, GameShell, StatusMessage, SurfaceCard } from '../../components/AppShell';
+import { markGameCompleted } from '../completed';
 import './TarotGame.css';
 
-type Step = 'question' | 'shuffling' | 'spread';
+type Step = 'intro' | 'drawing' | 'result';
 
-const SHUFFLE_DURATION_MS = 2000;
 const GAME_SLUG = 'tarot-cards';
 
 export default function TarotGame() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>('question');
+  const [step, setStep] = useState<Step>('intro');
   const [question, setQuestion] = useState('');
   const [drawResult, setDrawResult] = useState<TarotDrawResult | null>(null);
   const [error, setError] = useState('');
-  const [visibleCardIndex, setVisibleCardIndex] = useState(-1);
   const questionRef = useRef('');
-  const revealTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const onFortune = () => {
-    setError('');
-    questionRef.current = question;
-    setStep('shuffling');
-  };
 
   useEffect(() => {
-    if (step !== 'shuffling') return;
-    const id = setTimeout(async () => {
+    if (step !== 'drawing') return;
+
+    const timeoutId = setTimeout(async () => {
       try {
-        const result = await drawTarotCards(
-          (questionRef.current || '').trim() || undefined,
-          3
-        );
+        const result = await drawTarotCards(questionRef.current.trim() || undefined, 3);
         setDrawResult(result);
-        setStep('spread');
-        setVisibleCardIndex(0);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Ошибка');
-        setStep('question');
+        setStep('result');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка');
+        setStep('intro');
       }
-    }, SHUFFLE_DURATION_MS);
-    return () => {
-      clearTimeout(id);
-    };
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
   }, [step]);
 
-  useEffect(() => {
-    if (step !== 'spread' || !drawResult) return;
-    const t1 = setTimeout(() => setVisibleCardIndex(1), 300);
-    const t2 = setTimeout(() => setVisibleCardIndex(2), 600);
-    revealTimeoutsRef.current = [t1, t2];
-    return () => {
-      revealTimeoutsRef.current.forEach(clearTimeout);
-      revealTimeoutsRef.current = [];
-    };
-  }, [step, drawResult]);
-
-  const onDone = () => {
-    markGameCompleted(GAME_SLUG);
-    navigate('/games');
+  const onDraw = () => {
+    setError('');
+    questionRef.current = question;
+    setStep('drawing');
   };
 
   return (
-    <div className="tarot-game">
-      <div className="tarot-game-inner">
-        {step === 'question' && (
-          <div className="tarot-step tarot-question">
-            <h1 className="tarot-title">Гадание на картах ПроПро</h1>
-            <p className="tarot-prompt">Спроси колоду о самом сокровенном</p>
+    <GameShell
+      title="Карты ПроПро"
+      subtitle="Сформулируй вопрос, дождись расклада и прочитай три карты в едином формате результата."
+      stepLabel={step === 'intro' ? 'Подготовка' : step === 'drawing' ? 'Расклад' : 'Результат'}
+      progressLabel="1 из 3"
+    >
+      {step === 'intro' && (
+        <SurfaceCard>
+          <div className="section-header">
+            <span className="section-header__label">Ввод</span>
+            <h2>Спроси колоду о самом сокровенном</h2>
+            <p>Вопрос необязателен, но он помогает оформить единый сюжет расклада.</p>
+          </div>
+          <div className="app-stack">
             <textarea
-              className="tarot-input"
-              placeholder="Введите ваш вопрос..."
+              className="app-textarea"
+              placeholder="Например: что меня ждёт этой весной?"
               value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              rows={3}
+              onChange={(event) => setQuestion(event.target.value)}
             />
-            {error && <p className="tarot-error">{error}</p>}
-            <button type="button" className="tarot-btn tarot-btn-fortune" onClick={onFortune}>
-              Погадать
-            </button>
-          </div>
-        )}
-
-        {step === 'shuffling' && (
-          <div className="tarot-step tarot-shuffling">
-            <p className="tarot-prompt">Колода тасуется...</p>
-            <div className="tarot-deck" aria-hidden>
-              <div className="tarot-deck-card">
-                <img src={tarotCardBack1Url} alt="" className="tarot-deck-card-img" />
-              </div>
-              <div className="tarot-deck-card">
-                <img src={tarotCardBack2Url} alt="" className="tarot-deck-card-img" />
-              </div>
-              <div className="tarot-deck-card">
-                <img src={tarotCardBack3Url} alt="" className="tarot-deck-card-img" />
-              </div>
+            {error && <StatusMessage kind="error">{error}</StatusMessage>}
+            <div className="game-shell__actions">
+              <AppButton onClick={onDraw}>Сделать расклад</AppButton>
             </div>
           </div>
-        )}
+        </SurfaceCard>
+      )}
 
-        {step === 'spread' && drawResult && (
-          <div className="tarot-step tarot-spread">
-            <h2 className="tarot-spread-title">Ваш расклад</h2>
-            <div className="tarot-cards">
-              <CardSlot
-                label="Прошлое"
-                card={drawResult.past}
-                visible={visibleCardIndex >= 0}
-                backIndex={0}
-              />
-              <CardSlot
-                label="Настоящее"
-                card={drawResult.present}
-                visible={visibleCardIndex >= 1}
-                backIndex={1}
-              />
-              <CardSlot
-                label="Будущее"
-                card={drawResult.future}
-                visible={visibleCardIndex >= 2}
-                backIndex={2}
-              />
-            </div>
-            <button type="button" className="tarot-btn tarot-btn-done" onClick={onDone}>
-              Завершить
-            </button>
-            <button type="button" className="tarot-back" onClick={() => navigate('/games')}>
-              ← К списку игр
-            </button>
+      {step === 'drawing' && (
+        <SurfaceCard>
+          <div className="section-header">
+            <span className="section-header__label">Процесс</span>
+            <h2>Колода собирает ответ</h2>
+            <p>Сейчас формируется расклад из трёх карт: прошлое, настоящее и будущее.</p>
           </div>
-        )}
-      </div>
-    </div>
+          <div className="tarot-loading">
+            <div className="tarot-loading__card" />
+            <div className="tarot-loading__card" />
+            <div className="tarot-loading__card" />
+          </div>
+        </SurfaceCard>
+      )}
+
+      {step === 'result' && drawResult && (
+        <>
+          <SurfaceCard>
+            <div className="section-header">
+              <span className="section-header__label">Результат</span>
+              <h2>Три карты одного ответа</h2>
+              <p>Завершение игры доступно только после показа результата.</p>
+            </div>
+            <div className="tarot-grid">
+              <TarotCardView label="Прошлое" card={drawResult.past} />
+              <TarotCardView label="Настоящее" card={drawResult.present} />
+              <TarotCardView label="Будущее" card={drawResult.future} />
+            </div>
+          </SurfaceCard>
+          <div className="game-shell__actions">
+            <AppButton
+              onClick={() => {
+                markGameCompleted(GAME_SLUG);
+                navigate('/games');
+              }}
+            >
+              Завершить игру
+            </AppButton>
+            <AppButton tone="secondary" onClick={() => setStep('intro')}>
+              Сделать новый расклад
+            </AppButton>
+          </div>
+        </>
+      )}
+    </GameShell>
   );
 }
 
-const TAROT_BACK_URLS = [tarotCardBack1Url, tarotCardBack2Url, tarotCardBack3Url];
-
-function CardSlot({
-  label,
-  card,
-  visible,
-  backIndex,
-}: {
-  label: string;
-  card: TarotCard;
-  visible: boolean;
-  backIndex: 0 | 1 | 2;
-}) {
+function TarotCardView({ label, card }: { label: string; card: TarotCard }) {
   return (
-    <div className={`tarot-slot ${visible ? 'tarot-slot-visible' : ''}`}>
-      <span className="tarot-slot-label">{label}</span>
-      <div className={`tarot-card-flip ${visible ? 'tarot-card-flipped' : ''}`}>
-        <div className="tarot-card-flip-inner">
-          <div className="tarot-card-back" aria-hidden>
-            <img src={TAROT_BACK_URLS[backIndex]} alt="" className="tarot-card-back-img" />
-          </div>
-          <div className="tarot-card-face">
-            <div className="tarot-card-face-inner">
-              <h3 className="tarot-card-title">{card.title}</h3>
-              <p className="tarot-card-desc">{card.description}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="tarot-card">
+      <span className="tarot-card__label">{label}</span>
+      <h3>{card.title}</h3>
+      <p>{card.description}</p>
     </div>
   );
 }

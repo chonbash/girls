@@ -221,31 +221,3 @@ async def get_horoscope_prediction_post(
 ):
     text = await _fetch_horoscope_text(body.role_id, body.sign_id, db)
     return HoroscopePredictionOut(text=text)
-    if not rid or not sid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="role_id and sign_id are required",
-        )
-    role_by_id = {r["id"]: r for r in ROLES}
-    sign_by_id = {s["id"]: s for s in SIGNS}
-    role = role_by_id.get(rid)
-    sign = sign_by_id.get(sid)
-    if not role or not sign:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Unknown role_id or sign_id",
-        )
-    result = await db.execute(
-        select(HoroscopePrediction).where(HoroscopePrediction.is_active).order_by(HoroscopePrediction.sort_order, HoroscopePrediction.id)
-    )
-    predictions = list(result.scalars().all())
-    if not predictions:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="No predictions in database",
-        )
-    pred = random.choice(predictions)
-    # Итоговая фраза: «[Знак род.] [роль род.] ждёт: [текст]»
-    sentence = f"{sign['label_rod']} {role['label_rod']} ждёт: {pred.text}"
-    sentence = _insert_easter_egg(sentence)
-    return HoroscopePredictionOut(text=sentence)
